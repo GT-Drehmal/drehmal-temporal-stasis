@@ -1,0 +1,2 @@
+gamerule logAdminCommands true
+gamerule showDeathMessages true
