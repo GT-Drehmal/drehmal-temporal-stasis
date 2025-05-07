@@ -1,0 +1,1 @@
+give @s warped_fungus_on_a_stick{HideFlags:255,RepairCost:1000000,Unbreakable:1b,CustomModelData:1001,chunk_claim:1b} 1
