@@ -1,0 +1,9 @@
+{
+  "pack": {
+    "description": "Resource pack for Temporal Stasis add-on for Drehmal v2",
+    "pack_format": 15
+  },
+  "meta": {
+    "game_version": "1.20.1"
+  }
+}
