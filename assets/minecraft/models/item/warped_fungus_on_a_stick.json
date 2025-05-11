@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/handheld_rod",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1001
+      },
+      "model": "item/hourglass"
+    }
+  ],
+  "textures": {
+    "layer0": "minecraft:item/warped_fungus_on_a_stick"
+  }
+}
