@@ -1,2 +1,2 @@
-execute if score #nodrehmal? sts_vars matches 1 as @a if score @s sts_click matches 1.. if predicate claim:holding/claim_item run function claim:attempt
+execute if score #nodrehmal? sts_vars matches 1 as @a if score @s sts_click matches 1.. if predicate claim:holding/claim_item at @s run function claim:attempt
 execute if score #nodrehmal? sts_vars matches 1 as @a if score @s sts_click matches 1.. run scoreboard players reset @s sts_click

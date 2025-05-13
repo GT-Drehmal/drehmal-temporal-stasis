@@ -11,5 +11,11 @@ execute unless score #success sts_temp matches 0 if score @s sts_claims >= #play
 # Feedback
 execute if score @s sts_claims > #playermax sts_temp run say Too many claimed chunks
 execute if score @s sts_claims = #playermax sts_temp run say Claim Capacity Full
-execute unless score @s sts_claims >= #playermax sts_temp if score #success sts_temp matches 0 run function claim:fail
-execute unless score #success sts_temp matches 0 run function claim:success
+execute unless score @s sts_claims >= #playermax sts_temp if score #success sts_temp matches 0 run say claim fail!
+execute unless score #success sts_temp matches 0 at @s run function claim:success
+
+# FX
+# Success case is handled by claim:success
+# Do not need to check sts_claims because openpac-claims claim would have failed regardless
+execute if score #success sts_temp matches 0 at @s run function claim:playsound/claim_fail
+execute if score #success sts_temp matches 0 at @s run function claim:particles/claim_fail

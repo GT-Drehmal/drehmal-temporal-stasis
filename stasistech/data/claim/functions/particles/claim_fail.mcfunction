@@ -1,0 +1,1 @@
+particle smoke ~ ~1.4 ~ 0.0075 0.005 0.0075 0 12 normal

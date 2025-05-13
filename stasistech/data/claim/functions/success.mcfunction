@@ -12,5 +12,6 @@ execute unless score #remaining sts_temp matches 0 run tellraw @s [{"text":"Succ
 execute if score #remaining sts_temp matches 0 run tellraw @s [{"text":"Success! ","color":"yellow","bold":true},{"text":"Temporal Stasis has been activated for the current chunk. You have ","color":"gray","bold":false},{"text":"0","color":"red","bold":false},{"text":" claims left. Craft a <UNCLAIM_ITEM> to free a chunk.","color":"gray","bold":false}]
 
 function claim:playsound/claim_success
+function claim:particles/claim_success
 
 item replace entity @s weapon.mainhand with air
