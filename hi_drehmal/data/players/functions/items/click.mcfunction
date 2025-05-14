@@ -15,7 +15,7 @@ execute if predicate players:holding/avhorseremote run function players:avhorse/
 
 execute if predicate players:holding/mb as @s run function players:items/click/mb
 
-execute if predicate claim:holding/claim_item run function claim:attempt
+execute if predicate stasis:holding/hourglass run function stasis:claim/attempt
 
 execute if predicate players:holding/party_cannon run scoreboard players set @s pcannon_charge_c 7
 

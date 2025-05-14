@@ -1,6 +1,6 @@
 {
     "replace": false,
     "values": [
-        "claim:tick"
+        "stasis:tick"
     ]
 }

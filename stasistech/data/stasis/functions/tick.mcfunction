@@ -1,0 +1,2 @@
+execute if score #nodrehmal? sts_vars matches 1 as @a if score @s sts_click matches 1.. if predicate stasis:holding/hourglass at @s run function stasis:claim/attempt
+execute if score #nodrehmal? sts_vars matches 1 as @a if score @s sts_click matches 1.. run scoreboard players reset @s sts_click
