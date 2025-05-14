@@ -19,23 +19,23 @@ def restore_world(args):
 
         claimed_chunks = None
         dimension = None
-        if 'claims' in args.exclude:
-            try: # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
-                claims_dir = os.path.join(args.active, 'data', 'openpartiesandclaims', 'player-claims')
+        if 'claims' in args.exclude: # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
+            claims_dir = os.path.join(args.active, 'data', 'openpartiesandclaims', 'player-claims')
+            if os.path.exists(claims_dir):
                 dimension = 'minecraft:overworld'
-            except FileNotFoundError:
-                try: # one folder depth backwards for nether/end
-                    claims_dir = os.path.join(os.path.dirname(args.active), 'data', 'openpartiesandclaims', 'player-claims')
+            else: # one folder depth backwards for nether/end
+                claims_dir = os.path.join(os.path.dirname(args.active), 'data', 'openpartiesandclaims', 'player-claims')
+                if os.path.exists(claims_dir): 
                     dimension_name = os.path.basename(os.path.normpath(args.active))
                     if dimension_name == 'DIM-1':
                         dimension = 'minecraft:the_nether'
                     elif dimension_name == 'DIM1':
                         dimension = 'minecraft:the_end'
-                except FileNotFoundError:
-                    try: # two folder depth backwards for custom dimensions
-                        claims_dir = os.path.join(os.path.dirname(os.path.dirname(args.active)), 'data', 'openpartiesandclaims', 'player-claims')
+                else: # three folder depth backwards for custom dimensions
+                    claims_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(args.active))), 'data', 'openpartiesandclaims', 'player-claims')
+                    if os.path.exists(claims_dir):
                         dimension = f"minecraft:{os.path.basename(os.path.normpath(args.active))}"
-                    except FileNotFoundError:
+                    else:
                         print("Argument '-claims' was indicated, but the player-claims folder was not found! Is your directory structure strange? Aborting...")
                         return
             claimed_chunks = claims_lookup(claims_dir, dimension)
@@ -57,10 +57,10 @@ def restore_world(args):
             active_entities_path = os.path.join(active_entities_dir, region_file)
 
             restore_entities = True
-            if not os.path.exists(original_region_path):
+            if not os.path.exists(original_region_path) or os.path.getsize(original_region_path) == 0:
                 print(f"({idx}/{len(os.listdir(active_region_dir))}) Region {region_file} does not exist in original world, skipping.")
                 continue
-            if not os.path.exists(original_entities_path):
+            if not os.path.exists(original_entities_path) or os.path.getsize(original_entities_path) == 0:
                 if args.verbose:
                     print(f"Entity region {region_file} does not exist in original world, skipping.")
                 restore_entities = False
@@ -113,25 +113,26 @@ def restore_world(args):
                             continue
                         original_region_chunk = None
 
-                    try:
-                        active_entities_chunk = active_entities.get_chunk(chunk_x, chunk_z)
-                    except ChunkNotFound as e:
-                        if args.verbose:
-                            print(f"({chunk_x + chunk_z}/64) No active entities at ({chunk_x}, {chunk_z}) found.")
-                        active_entities_chunk = None
-
-                    try:
-                        original_entities_chunk = original_entities.get_chunk(chunk_x, chunk_z)
-                        if not active_entities_chunk:
-                            restored_entities.add_chunk(original_entities_chunk)
-                    except ChunkNotFound as e:
-                        if args.verbose:
-                            print(f"({chunk_x + chunk_z}/64) No original entities at ({chunk_x}, {chunk_z}) found.")
-                        if active_entities_chunk:
-                            restored_entities.add_chunk(active_entities_chunk)
+                    if restore_entities:
+                        try:
+                            active_entities_chunk = active_entities.get_chunk(chunk_x, chunk_z)
+                        except ChunkNotFound as e:
                             if args.verbose:
-                                print(f"Keeping active entities by default.")
-                        original_entities_chunk = None
+                                print(f"({chunk_x + chunk_z}/64) No active entities at ({chunk_x}, {chunk_z}) found.")
+                            active_entities_chunk = None
+
+                        try:
+                            original_entities_chunk = original_entities.get_chunk(chunk_x, chunk_z)
+                            if not active_entities_chunk:
+                                restored_entities.add_chunk(original_entities_chunk)
+                        except ChunkNotFound as e:
+                            if args.verbose:
+                                print(f"({chunk_x + chunk_z}/64) No original entities at ({chunk_x}, {chunk_z}) found.")
+                            if active_entities_chunk:
+                                restored_entities.add_chunk(active_entities_chunk)
+                                if args.verbose:
+                                    print(f"Keeping active entities by default.")
+                            original_entities_chunk = None
 
                     # if both active & original exist, pass to process_chunk for additional logic to choose. Usually original is chosen.
 
@@ -255,8 +256,8 @@ def claims_lookup(claims_dir: str, dimension: str) -> set:
     return claimed_chunks
 
 # this override is so anvil-parser2's Chunk can parse chunks in the 'entities' folder, which use Position instead of xPos/zPos in NBT.
-# do *not* use block-related functions on entity chunks.
-# Effectively ignorable
+# do *not* use block-related functions on entity chunks. Very much a bandaid fix that happens to work.
+# Effectively the source of any issues that involve entities and not regions.
 class Chunk(Chunk):
     __slots__ = ("version", "data", "x", "z", "tile_entities")
     def __init__(self, nbt_data: nbt.NBTFile):
@@ -288,9 +289,13 @@ class Chunk(Chunk):
 
 
         if (("xPos" not in nbt_data) or ("zPos" not in nbt_data)):
-            self.x = self.data["Position"].value[0]
-            self.z = self.data["Position"].value[1]
-        else:
+            try: # entity files use position
+                self.x = self.data["Position"].value[0]
+                self.z = self.data["Position"].value[1]
+            except KeyError: # sometimes some entity files are magically dataversion 2730 and mystically have an extra layer compound with no key.
+                self.x = self.data[""]["Position"].value[0]
+                self.z = self.data[""]["Position"].value[1]
+        else: # region files use xpos zpos
             self.x = self.data["xPos"].value
             self.z = self.data["zPos"].value
 anvil.Chunk = Chunk
@@ -301,7 +306,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Another strike of the clock, another iteration of the world, Drehmal rewinds, under the whims of the Mythoclast...",
         epilog=("Examples:\n",
-                "  python script.py -o \".minecraft/saves/ogDrehmal\" -a \".minecraft/saves/actDrehmal\" --exclude claims -b -7000 -7000 7000 7000 -v -p \n\n",
+                "  python script.py -o \".minecraft/saves/ogDrehmal\" -a \".minecraft/saves/actDrehmal\" --exclude claims -b -12 -11 14 15 -v -p \n\n",
                 "Note that -original and -active arguments are required string paths to the associated world directories. Backslashes not to be included."),
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
