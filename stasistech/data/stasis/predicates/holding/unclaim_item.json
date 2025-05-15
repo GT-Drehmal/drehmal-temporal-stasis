@@ -24,7 +24,7 @@
             "items": [
               "minecraft:warped_fungus_on_a_stick"
             ],
-            "nbt": "{runic_hourglass:1b}"
+            "nbt": "{chunk_unclaim:1b}"
           }
         }
       }
