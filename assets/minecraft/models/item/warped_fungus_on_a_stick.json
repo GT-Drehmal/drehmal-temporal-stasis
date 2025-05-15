@@ -6,6 +6,12 @@
         "custom_model_data": 1001
       },
       "model": "item/hourglass"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1003
+      },
+      "model": "item/warped_fungus_on_a_stick"
     }
   ],
   "textures": {
