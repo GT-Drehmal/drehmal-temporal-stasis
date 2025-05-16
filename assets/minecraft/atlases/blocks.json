@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "type": "directory",
+      "source": "item/runic_hourglass",
+      "prefix": "item/runic_hourglass/"
+    },
+    {
+      "type": "directory",
+      "source": "item/tide_in_a_bubble",
+      "prefix": "item/tide_in_a_bubble/"
+    }
+  ]
+}

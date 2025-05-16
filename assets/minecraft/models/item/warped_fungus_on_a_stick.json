@@ -89,7 +89,13 @@
       "predicate": {
         "custom_model_data": 1001
       },
-      "model": "item/hourglass"
+      "model": "item/runic_hourglass"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1002
+      },
+      "model": "item/tide_in_a_bubble"
     },
     {
       "predicate": {
