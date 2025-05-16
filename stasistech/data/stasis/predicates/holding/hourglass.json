@@ -24,6 +24,8 @@
             "items": [
               "minecraft:warped_fungus_on_a_stick"
             ],
+            "enchantments": [],
+            "stored_enchantments": [],
             "nbt": "{runic_hourglass:1b}"
           }
         }
