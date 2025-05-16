@@ -4,3 +4,5 @@ playsound minecraft:block.chain.break master @s ~ ~ ~ 0.06 0.5
 playsound minecraft:block.amethyst_block.resonate master @s ~ ~ ~ 1 0.5
 playsound minecraft:block.hanging_sign.place master @s ~ ~ ~ 1 0.5
 playsound minecraft:block.conduit.activate master @s ~ ~ ~ 0.81 0.5
+playsound minecraft:block.bubble_column.bubble_pop master @s ~ ~ ~ 1 0.8
+playsound minecraft:entity.splash_potion.break master @s ~ ~ ~ 0.25 2
