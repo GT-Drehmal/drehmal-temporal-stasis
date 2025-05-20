@@ -24,7 +24,7 @@
             "items": [
               "minecraft:warped_fungus_on_a_stick"
             ],
-            "nbt": "{chunk_unclaim:1b}"
+            "nbt": "{tides_bubble:1b}"
           }
         }
       }
