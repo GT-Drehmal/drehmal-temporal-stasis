@@ -15,10 +15,6 @@ execute if predicate players:holding/avhorseremote run function players:avhorse/
 
 execute if predicate players:holding/mb as @s run function players:items/click/mb
 
-# Temporal Stasis hook
-execute if predicate stasis:holding/runic_hourglass run function stasis:claim/attempt
-execute if predicate stasis:holding/tides_in_a_bubble run function stasis:unclaim/attempt
-
 execute if predicate players:holding/party_cannon run scoreboard players set @s pcannon_charge_c 7
 
 scoreboard players reset @s click
