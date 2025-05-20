@@ -1,0 +1,20 @@
+Tides in a Bubble
+A glass bubble containing a frozen exerpt of the Tides.
+When placed next to one's ear, it faintly emits
+the sounds of the ocean. The craft of producing
+such curios dates back to the ancient Tidal Dynasty.
+Said to draw from Nature's own potentia,
+this trinket possesses a unique ability to
+return matter — sometimes even time — back to its
+most unsophisticated state.
+
+Return to the Tides
+Right click to consume this item and
+unclaim the chunk you are standing in.
+You will regain 1 claim.
+This chunk will no longer be protected
+from restoration events.
+
+This item is consumed on use.
+
+Trinket

@@ -1,16 +1,15 @@
 Runic Hourglass
 An intricate mechanism infused with runic energy,
 this Avsohmic creation is capable of enacting
-Temporal Stasis on a small chunk of land.
+Temporal Stasis over a small area.
 In certain regions, artificers have been spotted
-using a similar technology to counteract
-temporal magic.
+using a similar technology to counteract temporal magic.
 
 Stasis
-Right click to consume this hourglass
-and claim the chunk you are located in.
-The chunk will not be reset
-during a restoration event.
+Right click to consume this hourglass and
+claim the chunk you are standing in.
+This chunk will be protected from
+restoration events.
 
 This item is consumed on use.
 
