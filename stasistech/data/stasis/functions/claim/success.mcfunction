@@ -9,7 +9,7 @@ execute if score #remaining sts_temp matches ..-1 run tellraw @s [{"text":"AN ER
 
 # Feedback
 execute unless score #remaining sts_temp matches 0 run tellraw @s [{"text":"Success! ","color":"yellow","bold":true},{"text":"Temporal Stasis has been activated for the current chunk. You have ","color":"gray","bold":false},{"score":{"name":"#remaining","objective":"sts_temp"},"color":"white","bold":false},{"text":"/","color":"gray","bold":false},{"score":{"name":"#playermax","objective":"sts_temp"},"color":"gray","bold":false},{"text":" claims left.","color":"gray","bold":false}]
-execute if score #remaining sts_temp matches 0 run tellraw @s [{"text":"Success! ","color":"yellow","bold":true},{"text":"Temporal Stasis has been activated for the current chunk. You have ","color":"gray","bold":false},{"text":"0","color":"red","bold":false},{"text":" claims left. Craft a <UNCLAIM_ITEM> to free a chunk.","color":"gray","bold":false}]
+execute if score #remaining sts_temp matches 0 run tellraw @s [{"text":"Success! ","color":"yellow","bold":true},{"text":"Temporal Stasis has been activated for the current chunk. You have ","color":"gray","bold":false},{"text":"0","color":"red","bold":false},{"text":" claims left. Craft ","color":"gray","bold":false},{"text":"Tides in a Bubble","color":"dark_green","underlined":true},{"text":" to free a chunk."}]
 
 function stasis:playsound/claim_success
 function stasis:particles/claim_success

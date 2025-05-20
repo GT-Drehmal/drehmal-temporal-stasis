@@ -1,5 +1,6 @@
 scoreboard objectives remove sts_claims
 scoreboard objectives remove sts_extra_claims
+scoreboard objectives remove sts_tg_get_remaining
 scoreboard players reset #success sts_temp
 scoreboard players reset #nodrehmal? sts_vars
 function stasis:load

@@ -7,6 +7,8 @@ scoreboard objectives add sts_extra_claims dummy
 scoreboard objectives add sts_temp dummy
 scoreboard objectives add sts_vars dummy
 scoreboard players set #nodrehmal? sts_vars 0
+# Triggers
+scoreboard objectives add sts_tg_get_remaining trigger
 
 # ===============
 ## Uncomment this only if you're trying to run this without the Drehmal datapack active.
