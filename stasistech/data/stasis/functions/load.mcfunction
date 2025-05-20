@@ -20,8 +20,8 @@ schedule function stasis:1s 1s replace
 # ===============
 ## Uncomment this only if you're trying to run this without the Drehmal datapack active.
 ## Note this may cause unexpected bugs to occur. Use for testing purposes only.
-# tellraw @a "[Stasis claim] Non-Drehmal mode is active"
+# say "[Stasis claim] Non-Drehmal mode is active"
 # scoreboard players set #nodrehmal? sts_vars 1
 # ===============
 
-tellraw @a "[Stasis claim] Load success"
+say [Stasis claim] Load success
