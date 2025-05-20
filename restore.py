@@ -167,7 +167,7 @@ def restore_world(args):
         )
         sys.exit(1)
 
-    print(f"Restored the world in {args.active} to its original state in {args.original} in {time.perf_counter() - start_time:.3f} seconds")
+    print(f"Restored the {dimension} at {args.active} to its original state at {args.original} in {time.perf_counter() - start_time:.3f} seconds")
 
 # chunk restoration logic, currently only used for -exclude claims, but intended for more logic/exclusion cases.
 
