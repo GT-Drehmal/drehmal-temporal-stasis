@@ -1,7 +1,9 @@
 scoreboard objectives remove sts_claims
 scoreboard objectives remove sts_extra_claims
-scoreboard objectives remove sts_received_hourglass
+scoreboard objectives remove sts_bool_received_hourglass
 scoreboard objectives remove sts_tg_get_remaining
+scoreboard objectives remove sts_tg_get_recipe_hourglass
+scoreboard objectives remove sts_tg_get_recipe_bubble
 scoreboard objectives remove sts_click
 scoreboard players reset #success sts_temp
 scoreboard players reset #nodrehmal? sts_vars

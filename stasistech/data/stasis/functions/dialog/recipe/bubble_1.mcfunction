@@ -1,0 +1,1 @@
+tag @a[tag=sts_recipe_bubble_dialog] remove sts_recipe_bubble_dialog

@@ -1,7 +1,7 @@
 # Number of claims a player currently has
 scoreboard objectives add sts_claims dummy
 # If the player has already been given the initial hourglass
-scoreboard objectives add sts_received_hourglass dummy
+scoreboard objectives add sts_bool_received_hourglass dummy
 # [Hard-coded] Base maximum claim capacity for every player
 scoreboard players set #max sts_claims 32
 # A player's claim capacity is increased by this much on top of #max:
@@ -13,6 +13,8 @@ scoreboard players set #nodrehmal? sts_vars 0
 scoreboard objectives add sts_click minecraft.used:warped_fungus_on_a_stick
 ## Triggers
 scoreboard objectives add sts_tg_get_remaining trigger
+scoreboard objectives add sts_tg_get_recipe_hourglass trigger
+scoreboard objectives add sts_tg_get_recipe_bubble trigger
 
 ## Scheduled
 schedule function stasis:1s 1s replace

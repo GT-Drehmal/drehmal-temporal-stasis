@@ -1,0 +1,2 @@
+tellraw @a[tag=sts_initial_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"／／"},{"text":"ＷＡＲＮＩＮＧ：　ＡＮＯＭＡＬＯＵＳ　ＳＴＡＴＥ　ＤＥＴＥＣＴＥＤ　ＩＮ　ＴＥＭＰＯＲＡＬ　ＥＮＧＩＮＥ"},{"text":"／／"}]
+schedule function stasis:dialog/unlock_2 4s replace

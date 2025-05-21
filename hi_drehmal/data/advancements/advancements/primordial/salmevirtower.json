@@ -21,5 +21,8 @@
             "trigger": "minecraft:impossible"
         }
     },
+    "rewards": {
+        "function": "stasis:unlock"
+    },
     "parent": "advancements:primordial/a8_25p"
 }
