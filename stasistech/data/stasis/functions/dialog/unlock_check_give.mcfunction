@@ -1,0 +1,2 @@
+execute as @a[tag=sts_initial_hourglass_dialog_check] if score @s sts_bool_received_hourglass matches 0 run function stasis:dialog/unlock_give_hourglass
+execute as @a[tag=sts_initial_hourglass_dialog_check] unless score @s sts_bool_received_hourglass matches 0 run tag @s remove sts_initial_hourglass_dialog
