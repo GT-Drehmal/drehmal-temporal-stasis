@@ -1,2 +1,2 @@
 ## Execute as thrown water bottle. Checks if the required items are present
-execute if entity @e[type=minecraft:item,distance=0..1,nbt={Item:{id:"minecraft:glass_pane",Count:8b},OnGround:1b}] if entity @e[type=minecraft:item,distance=0..1,nbt={Item:{id:"minecraft:soul_torch",Count:4b},OnGround:1b}] at @s run function stasis:crafting/tides_in_a_bubble/craft
+execute if entity @e[type=minecraft:item,distance=0..2,nbt={Item:{id:"minecraft:glass_pane",Count:8b},OnGround:1b}] if entity @e[type=minecraft:item,distance=0..2,nbt={Item:{id:"minecraft:soul_torch",Count:4b},OnGround:1b}] at @s run function stasis:crafting/tides_in_a_bubble/craft

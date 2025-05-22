@@ -6,7 +6,7 @@ scoreboard objectives remove sts_tg_get_recipe_hourglass
 scoreboard objectives remove sts_tg_get_recipe_bubble
 scoreboard objectives remove sts_click
 scoreboard objectives remove sts_use_pearl
-scoreboard objectives remove sts_throw_water
+scoreboard objectives remove sts_throw_potion
 scoreboard players reset #success sts_temp
 scoreboard players reset #nodrehmal? sts_vars
 function stasis:lock

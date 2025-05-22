@@ -11,7 +11,7 @@ scoreboard objectives add sts_vars dummy
 scoreboard players set #nodrehmal? sts_vars 0
 # Item usage
 scoreboard objectives add sts_click minecraft.used:warped_fungus_on_a_stick
-scoreboard objectives add sts_throw_water minecraft.used:splash_potion
+scoreboard objectives add sts_throw_potion minecraft.used:splash_potion
 scoreboard objectives add sts_use_pearl minecraft.used:ender_pearl
 ## Triggers
 scoreboard objectives add sts_tg_get_remaining trigger
