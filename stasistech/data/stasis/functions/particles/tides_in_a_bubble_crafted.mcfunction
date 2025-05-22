@@ -1,0 +1,1 @@
+particle splash ~ ~0.05 ~ 0.025 0.05 0.025 0 50 force
