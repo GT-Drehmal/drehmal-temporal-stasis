@@ -19,7 +19,8 @@ def claims2nbt(args):
             loc = row['Location']
             x = int(row['Chunk X'])
             z = int(row['Chunk Z'])
-            locations.setdefault(loc, []).append((x, z))
+            dimension = row['Dimension']
+            locations.setdefault(loc, []).append((x, z, dimension))
 
     # write nbt files
     counter = 2 # NOTE: See 'a)' at bottom.
@@ -27,37 +28,39 @@ def claims2nbt(args):
         uuid_suffix = f"{counter:012d}"
         filename = f"00000000-0000-0000-0000-{uuid_suffix}.nbt" # NOTE: See 'b)' at bottom.
         output_path = os.path.join(claims_dir, filename)
+
+        dimensions = {}
+        for x, z, dimension in coords:
+            dimensions.setdefault(dimension, []).append((x, z))
+        
+        dimension_compounds = {
+            dimension: Compound({
+                "claims": List([
+                    Compound({
+                        "state": Compound({"forceloaded": Int(0), "subConfigIndex": Int(-1)}), # NOTE: see 'd)' at bottom.
+                        "positions": List([Compound({"x": Int(x), "z": Int(z)}) for (x,z) in coords])
+                    })
+                ])
+            })
+            for dimension, coords in dimensions.items()
+        }
+
         nbt_data = Compound({
             "confirmedActivity": Long(10200546), # NOTE: See 'c)' at bottom.
             "username": String(loc),
-            "dimensions": Compound({
-                args.dimension: Compound({
-                    "claims": List([
-                        Compound({
-                            "state": Compound({"forceloaded": Int(0), "subConfigIndex": Int(-1)}), # NOTE: see 'd)' at bottom.
-                            "positions": List([Compound({"x": Int(x), "z": Int(z)}) for (x,z) in coords])
-                        })
-                    ])
-                })
-            })
+            "dimensions": Compound(dimension_compounds)
         })
+
         nbt_file = File(nbt_data)
         nbt_file.save(output_path)
         print(f"Wrote NBT for location '{loc}' to {output_path}")
         counter += 1
 
-
 # cli org
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description="Given a .csv of Location, Chunk X, Chunk Z: Generate OPaC-compatible .nbt files claiming defined chunks for each location."
-    )
-    parser.add_argument(
-        '-d', '--dimension',
-        required=True,
-        type=str,
-        help='Minecraft dimension for the chunks in the .csv, e.g. "minecraft:overworld"'
+        description="Run in same folder as .csv with headers Location, Chunk X, Chunk Z, and Dimensions. Generates folder of OPaC-compatible .nbt files."
     )
     args = parser.parse_args()
 
