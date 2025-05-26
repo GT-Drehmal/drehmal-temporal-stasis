@@ -29,3 +29,4 @@ schedule function stasis:1s 1s replace
 # ===============
 
 say [Stasis claim] Load success
+execute unless score #enabled sts_vars matches 1 run tellraw @s "[Stasis claim] Note: Stasis is not enabled"
