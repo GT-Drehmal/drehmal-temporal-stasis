@@ -1,1 +1,1 @@
-playsound minecraft:entity.enderman.teleport master @s ~ ~ ~ 1 0.5
+playsound minecraft:entity.enderman.teleport master @a ~ ~ ~ 1 0.5
