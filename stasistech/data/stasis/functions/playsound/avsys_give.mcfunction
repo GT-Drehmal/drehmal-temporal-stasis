@@ -1,0 +1,1 @@
+playsound minecraft:entity.player.levelup master @s ~ ~ ~ 1 2

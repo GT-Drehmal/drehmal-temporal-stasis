@@ -2,6 +2,7 @@
 scoreboard objectives add sts_claims dummy
 # If the player has already been given the initial hourglass
 scoreboard objectives add sts_bool_received_hourglass dummy
+scoreboard objectives add sts_bool_seen_unlock_dialog dummy
 # [Hard-coded] Base maximum claim capacity for every player
 scoreboard players set #max sts_claims 32
 # A player's claim capacity is increased by this much on top of #max:

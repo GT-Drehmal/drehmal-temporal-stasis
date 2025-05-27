@@ -1,0 +1,1 @@
+playsound block.note_block.bit master @s ~ ~ ~ 1 2

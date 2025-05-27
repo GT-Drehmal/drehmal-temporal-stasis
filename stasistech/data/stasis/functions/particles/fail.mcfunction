@@ -1,1 +1,1 @@
-particle smoke ~ ~1.45 ~ 0 0 0 0.045 32 normal
+particle smoke ~ ~1.45 ~ 0 0 0 0.045 32 normal @s
