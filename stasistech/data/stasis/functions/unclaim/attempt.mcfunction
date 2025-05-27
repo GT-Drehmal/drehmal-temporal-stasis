@@ -6,8 +6,8 @@ execute unless score #success sts_temp matches 0 if score @s sts_claims matches 
 execute if score @s sts_claims matches ..-1 run tellraw @s [{"text":"AN ERROR OCCURRED!", "color": "red","bold": true},{"text":" Number of claims cannot be negative (found ", "color": "gray","bold": false},{"score":{"name":"@s","objective":"sts_claims"}},{"text":"). Please send this error message to the GT Drehmaris Discord!", "bold": false,"color": "white"}]
 
 # Feedback
-execute if score @s sts_claims matches 0 run say No chunk to unclaim
-execute unless score @s sts_claims matches 0 if score #success sts_temp matches 0 run say unclaim fail!
+execute if score @s sts_claims matches 0 run tellraw @s [{"text":"You don't have any chunks to unclaim!", "color": "red"}]
+execute unless score @s sts_claims matches 0 if score #success sts_temp matches 0 run tellraw @s [{"text": "This chunk does not belong to you.", "color": "gray"}]
 execute unless score #success sts_temp matches 0 at @s run function stasis:unclaim/success
 
 # FX

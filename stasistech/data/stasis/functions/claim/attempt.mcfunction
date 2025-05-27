@@ -11,9 +11,11 @@ execute unless score #success sts_temp matches 0 if score @s sts_claims >= #play
 execute if score @s sts_claims matches ..-1 run tellraw @s [{"text":"AN ERROR OCCURRED!", "color": "red","bold": true},{"text":" Number of claims cannot be negative (found ", "color": "gray","bold": false},{"score":{"name":"@s","objective":"sts_claims"}},{"text":"). Please send this error message to the GT Drehmaris Discord!", "bold": false,"color": "white"}]
 
 # Feedback
-execute if score @s sts_claims > #playermax sts_temp run say Too many claimed chunks
-execute if score @s sts_claims = #playermax sts_temp run say Claim Capacity Full
-execute unless score @s sts_claims >= #playermax sts_temp if score #success sts_temp matches 0 run say claim fail!
+scoreboard players operation #playerdiff sts_temp = @s sts_claims
+scoreboard players operation #playerdiff sts_temp -= #playermax sts_temp
+scoreboard players add #playerdiff sts_temp 1
+execute if score @s sts_claims >= #playermax sts_temp run tellraw @s [{"text":"You ran out of claims! ", "color": "red"},{"text":"Free ", "color": "gray"},{"score":{"name":"#playerdiff","objective":"sts_temp"},"color":"white"},{"text":" chunk(s) with ", "color": "gray"},{"text":"Tides in a Bubble","color":"aqua","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to view recipe"}]},"clickEvent":{"action":"run_command","value":"/trigger sts_tg_get_recipe_bubble"}},{"text":".","color": "gray"}]
+execute unless score @s sts_claims >= #playermax sts_temp if score #success sts_temp matches 0 run tellraw @s [{"text": "You cannot claim this chunk.", "color":"gray"}]
 execute unless score #success sts_temp matches 0 at @s run function stasis:claim/success
 
 # FX

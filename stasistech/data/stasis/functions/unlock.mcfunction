@@ -1,5 +1,7 @@
 ## Unlocks Temporal Stasis features for all players, and gifts them the initial hourglass & recipes
 scoreboard players set #enabled sts_vars 1
+# Enable all triggers
+function stasis:enable_triggers
 # Reset hourglass reception
 scoreboard objectives remove sts_bool_received_hourglass
 scoreboard objectives add sts_bool_received_hourglass dummy

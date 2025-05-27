@@ -8,10 +8,9 @@ execute if score #enabled sts_vars matches 1 as @e[type=minecraft:ender_pearl, t
 execute unless score #enabled sts_vars matches 1 run scoreboard players reset @a sts_click
 
 ## Triggers
-execute if score #enabled sts_vars matches 1 run function stasis:enable_triggers
-execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_get_remaining matches 1.. run function stasis:dialog/get_remaining
-execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_get_recipe_hourglass matches 1.. run function stasis:dialog/recipe/hourglass_0
-execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_get_recipe_bubble matches 1.. run function stasis:dialog/recipe/bubble_0
+execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_get_remaining matches 1.. at @s run function stasis:dialog/get_remaining
+execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_get_recipe_hourglass matches 1.. at @s run function stasis:dialog/recipe/hourglass_0
+execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_get_recipe_bubble matches 1.. at @s run function stasis:dialog/recipe/bubble_0
+execute if score #enabled sts_vars matches 1 as @a if score @s sts_tg_menu matches 1.. at @s run function stasis:dialog/recipe/show_menu
 
 ## Testing zone
-# execute as @e[tag=sts_crafting_thrown_mundane] run say aaaa

@@ -1,0 +1,1 @@
+tellraw @s [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"［"},{"text":"ＶＩＥＷ　ＭＥＮＵ", "underlined": true, "color":"aqua","clickEvent": {"action":"run_command","value": "/trigger sts_tg_menu"},"hoverEvent": {"action": "show_text","contents": "Click to open Remote Command Interface"}},{"text":"］"}]

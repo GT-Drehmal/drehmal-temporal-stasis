@@ -1,5 +1,7 @@
 #tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"／／ＲＥＣＩＰＥ　ＳＴＡＲＴ／／"}]
-tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"ＲＵＮＩＣ　ＨＯＵＲＧＬＡＳＳ","color":"dark_aqua","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click for command"}]},"clickEvent":{"action":"suggest_command","value":"/trigger sts_tg_get_recipe_bubble"}}]
+tellraw @a[tag=sts_recipe_hourglass_dialog] ["[",{"text":"ａｖＳＹＳ","color":"aqua"},"] －－－－－－－－－－－－－－－－－－－－－－"]
+tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "}]
+tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"２９．１４ \"ＲＵＮＩＣ　ＨＯＵＲＧＬＡＳＳ\"","color":"white","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"/trigger sts_tg_get_recipe_hourglass"}]},"clickEvent":{"action":"suggest_command","value":"/trigger sts_tg_get_recipe_hourglass"}}]
 tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"ＰＲＥＰＡＲＥ　ＯＮ　ＦＬＡＴ　ＳＵＲＦＡＣＥ","bold":true}]
 tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"    ６４ｘ","color":"gray"},{"text":"ＢＬＯＣＫＳ　ＯＦ　ＳＡＮＤ"}]
 tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"    ２ｘ","color":"gray"},{"text":"ＲＵＮＩＣ　ＣＡＴＡＬＹＳＴＳ"}]
@@ -9,5 +11,9 @@ tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹ�
 tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"    ＰＲＩＭＡＬ　ＰＥＡＲＬ","color":"white"}]
 tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"ＡＴ　ＭＡＴＥＲＩＡＬ．","bold":true}]
 #tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "},{"text":"／／ＲＥＣＩＰＥ　ＥＮＤ／／"}]
+tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "}]
+execute as @a[tag=sts_recipe_hourglass_dialog] run function stasis:dialog/recipe/menu_button
+tellraw @a[tag=sts_recipe_hourglass_dialog] [{"text":"["},{"text":"ａｖＳＹＳ","color":"aqua"},{"text":"] "}]
+execute as @a[tag=sts_recipe_hourglass_dialog] at @s run function stasis:playsound/avsys_task
 
 tag @a[tag=sts_recipe_hourglass_dialog] remove sts_recipe_hourglass_dialog

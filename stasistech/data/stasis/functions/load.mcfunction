@@ -18,6 +18,8 @@ scoreboard objectives add sts_use_pearl minecraft.used:ender_pearl
 scoreboard objectives add sts_tg_get_remaining trigger
 scoreboard objectives add sts_tg_get_recipe_hourglass trigger
 scoreboard objectives add sts_tg_get_recipe_bubble trigger
+scoreboard objectives add sts_tg_menu trigger
+function stasis:enable_triggers
 
 ## Scheduled
 schedule function stasis:1s 1s replace
