@@ -2,7 +2,7 @@ import argparse, os, re, time, sys
 import logging
 from nbt import nbt
 import nbtlib
-from anvil import Region, Chunk, EmptyRegion
+from anvil import Region, Chunk, EmptyRegion # type: ignore
 import anvil.chunk
 from anvil.errors import ChunkNotFound
 from anvil.versions import *
@@ -10,46 +10,63 @@ from anvil.versions import *
 # this override is so anvil-parser2's Chunk can parse chunks in the 'entities' folder, which use Position instead of xPos/zPos in NBT.
 # do *not* use block-related functions on entity chunks. Very much a bandaid fix that happens to work.
 # Effectively the source of any issues that involve entities and not regions.
-class Chunk(Chunk):
+class Chunk(Chunk): # type: ignore
     __slots__ = ("version", "data", "x", "z", "tile_entities")
+    _logger = logging.getLogger('restore.Chunk')
     def __init__(self, nbt_data: nbt.NBTFile):
+        Chunk._logger.debug(f'Instantiating Chunk for NBT file {nbt_data.filename}')
         try:
             self.version = nbt_data["DataVersion"].value
+            Chunk._logger.debug(f'Chunk data version is {self.version}')
         except KeyError:
             self.version = VERSION_PRE_15w32a
+            Chunk._logger.debug(f'Chunk data version is pre-15w32a')
 
         if self.version >= VERSION_21w43a:
             self.data = nbt_data
             if "block_entities" in self.data:
+                Chunk._logger.debug('Using block_entities as tile_entities')
                 self.tile_entities = self.data["block_entities"]
             elif "Entities" in self.data:
+                Chunk._logger.debug('Using Entities as tile_entities')
                 self.tile_entities = self.data["Entities"]
             else:
+                Chunk._logger.debug('Leaving tile_entities blank')
                 self.tile_entities = [] 
 
         else:
             try:
                 self.data = nbt_data["Level"]
                 if "TileEntities" in self.data:
+                    Chunk._logger.debug('Using TileEntities as tile_entities')
                     self.tile_entities = self.data["TileEntities"]
-            except Exception:
+            except KeyError:
                 self.data = nbt_data
                 if "TileEntities" in self.data:
+                    Chunk._logger.debug('Using TileEntities as tile_entities')
                     self.tile_entities = self.data["TileEntities"]
                 else:
+                    Chunk._logger.debug('Using Entities as tile_entities')
                     self.tile_entities = self.data.get("Entities", [])
 
 
         if (("xPos" not in nbt_data) or ("zPos" not in nbt_data)):
             try: # entity files use position
+                Chunk._logger.debug('Looking for Position in entity file')
                 self.x = self.data["Position"].value[0]
                 self.z = self.data["Position"].value[1]
             except KeyError: # sometimes some entity files are magically dataversion 2730 and mystically have an extra layer compound with no key.
+                Chunk._logger.debug('Looking for Position in data version 2730 entity file')
                 self.x = self.data[""]["Position"].value[0]
                 self.z = self.data[""]["Position"].value[1]
         else: # region files use xpos zpos
+            Chunk._logger.debug('Extracting positions data from region file')
             self.x = self.data["xPos"].value
             self.z = self.data["zPos"].value
+        Chunk._logger.debug(f'Generated Chunk instance for NBT file {nbt_data.filename}')
+
+    def __repr__(self):
+        return f'Chunk({self.x},{self.z})'
 anvil.Chunk = Chunk
 
 
@@ -100,10 +117,10 @@ def restore_world() -> int:
         if parsed_args.preview:
             logger.warning(f'Running under PREVIEW mode. No changes will be committed to the files.')
         logger.info(f"Beginning restoration of {len(os.listdir(active_region_dir))} regions...")
-        for idx, region_file in enumerate(os.listdir(active_region_dir), start=1):
 
+        for idx, region_file in enumerate(os.listdir(active_region_dir), start=1):
             if not region_file.endswith('.mca'):
-                logger.warning(f"({idx}/{len(os.listdir(active_region_dir))}) File {region_file} not an anvil file, skipping.")
+                logger.warning(f"({idx}/{len(os.listdir(active_region_dir))}) Skipping non-anvil file {region_file}.")
                 continue
 
             original_region_path = os.path.join(original_region_dir, region_file)
@@ -111,18 +128,23 @@ def restore_world() -> int:
             original_entities_path = os.path.join(original_entities_dir, region_file)
             active_entities_path = os.path.join(active_entities_dir, region_file)
 
-            restore_entities = True
-            if not os.path.exists(original_region_path) or os.path.getsize(original_region_path) == 0:
+            if not os.path.exists(original_region_path):
                 logger.warning(f"({idx}/{len(os.listdir(active_region_dir))}) Region {region_file} does not exist in original world, skipping.")
                 continue
+            elif os.path.getsize(original_region_path) == 0:
+                logger.warning(f"({idx}/{len(os.listdir(active_region_dir))}) Skipping empty region file {region_file}.")
+                continue
+            elif not region_modified(original_region_path, active_region_path):
+                logger.info(f"({idx}/{len(os.listdir(active_region_dir))}) Skipping unmodified region file {region_file}.")
+                continue
+
             if not os.path.exists(original_entities_path) or os.path.getsize(original_entities_path) == 0:
                 logger.warning(f"Entity region {region_file} does not exist in original world, skipping.")
                 restore_entities = False
-            if not is_region_diff(original_region_path, active_region_path):
-                logger.info(f"({idx}/{len(os.listdir(active_region_dir))}) Region {region_file} has unchanged modified timestamp, skipping.")
-                continue
+            else:
+                restore_entities = True
 
-            regional_x, regional_z = get_region_coords(region_file) # type: ignore
+            regional_x, regional_z = get_region_coords(region_file)
 
             if parsed_args.boundary:
                 min_x, min_z, max_x, max_z = map(int, parsed_args.boundary)
@@ -200,9 +222,7 @@ def restore_world() -> int:
                     original_mtime = os.path.getmtime(original_entities_path)
                     os.utime(active_entities_path, (original_mtime, original_mtime))
 
-            logger.debug(
-                f"({idx}/{len(os.listdir(active_region_dir))}) Updated region ({regional_x}, {regional_z}) in {region_file} in {time.perf_counter() - region_start_time:.3f} seconds"
-            )
+            logger.info(f"({idx}/{len(os.listdir(active_region_dir))}) Updated region ({regional_x}, {regional_z}) in {region_file} in {time.perf_counter() - region_start_time:.3f} seconds")
             
         # end main loop
 
@@ -221,6 +241,7 @@ def process_chunk(restored_region: EmptyRegion, active_chunk: Chunk, original_ch
         return
     if 'claims' in args.exclude:
         if is_claimed(active_chunk, claimed_chunks):
+            logger.debug(f"{active_chunk} is claimed. Skipping...")
             restored_region.add_chunk(active_chunk)
             return
         else:
@@ -229,21 +250,17 @@ def process_chunk(restored_region: EmptyRegion, active_chunk: Chunk, original_ch
         
 # helper functions
 def is_claimed(chunk: Chunk, claimed_chunks: set) -> bool:
-    claimed = (chunk.x, chunk.z) in claimed_chunks
-    if claimed:
-        logger.debug(f"Chunk ({chunk.x}, {chunk.z}) is claimed. Skipping...")
-    return claimed
+    return (chunk.x, chunk.z) in claimed_chunks
 
 def get_region_coords(filename: str):
     match = re.fullmatch(r"r\.(-?\d+)\.(-?\d+)\.mca", filename)
     if not match:
-        logger.exception(f"Filename '{filename}' does not match expected format. " 
-            "Expected format is 'r.<region_x>.<region_z>.mca' (e.g., 'r.0.0.mca' or 'r.-1.5.mca').")
-        return -1
+        logger.exception(f"Filename '{filename}' does not match expected format 'r.<region_x>.<region_z>.mca' (e.g., 'r.0.0.mca' or 'r.-1.5.mca').")
+        sys.exit(-1)
     region_x, region_z = map(int, match.groups())
     return region_x, region_z
 
-def is_region_diff(original_region_path: str, active_region_path: str) -> bool:
+def region_modified(original_region_path: str, active_region_path: str) -> bool:
     original_mtime = os.path.getmtime(original_region_path)
     active_mtime = os.path.getmtime(active_region_path)
 
@@ -259,17 +276,21 @@ excluded_players = [ # specify static player ids to exclude from restore protect
 def claims_lookup(claims_dir: str, dimension: str) -> set:
     claimed_chunks = set()
 
+    if not os.path.exists(claims_dir):
+        logger.exception(f'Claim path {claims_dir} does not exist.')
+        sys.exit(-1)
+    
     for filename in os.listdir(claims_dir):
-        if any(excluded_id in filename for excluded_id in excluded_players):
-            continue
         if not filename.endswith('.nbt'):
+            continue
+        if any(excluded_id in filename for excluded_id in excluded_players):
             continue
 
         claim_path = os.path.join(claims_dir, filename)
         try:
             claim_data = nbtlib.load(claim_path)
         except Exception as e:
-            logger.warning(f"Error reading the following player's claim data: '{filename}': {e}")
+            logger.warning(f"Error reading claim data '{filename}': {e}")
             continue
         
         dimension_list = claim_data.get('dimensions')
@@ -329,6 +350,8 @@ example:
         logging.getLogger().setLevel(logging.INFO)
     # Global logger. Functions may override this with their own logger instance.
     logger = logging.getLogger('restore')
+
+    logger.debug(f'''Arguments: {parsed_args}''')
 
     #TODO:
     # 2. Avoid restoring loot
