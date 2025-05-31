@@ -310,18 +310,16 @@ def logger_init(name: str = 'restore'):
         fh.setFormatter(fmt)
         if parsed_args.verbose:
             fh.setLevel(logging.DEBUG)
+        else:
+            fh.setLevel(logging.INFO)
         root_logger.addHandler(fh)
+    root_logger.setLevel(logging.DEBUG)
     logger = logging.getLogger(name)
     # # Configure new logger if it does not have any handlers
     # # because for some reason it can inherit file handler and not stream handler :///
     # # Now it suddenly decides to work again and I do not know why
     # if len(logger.handlers) == 0:
-    #     fmt = logging.Formatter(LOG_FMT)
-    #     tqdm_handler = TqdmLoggingHandler()
-    #     tqdm_handler.setFormatter(fmt)
-    #     tqdm_handler.stream = sys.stderr
     #     logger.addHandler(tqdm_handler)
-    #     logger.setLevel(LOG_LEVEL)
     return logger
 
 # tqdm.contrib.logging
@@ -358,7 +356,8 @@ class ProgressParallel(Parallel):
             total=self._total, 
             unit=self._unit, 
             dynamic_ncols=True, 
-            colour=f'#{random.randint(0, 16777215):06x}'
+            colour=f'#{random.randint(0, 16777215):06x}',
+            maxinterval=0.01
         ) as self._pbar:
             return Parallel.__call__(self, *args, **kwargs)
 
@@ -450,7 +449,6 @@ class Chunk(anvil.chunk.Chunk): # type: ignore
     def __repr__(self):
         return f'Chunk({self.x},{self.z})'
 anvil.Chunk = Chunk
-anvil.chunk.Chunk = Chunk
 
 # cli org
 if __name__ == '__main__':
