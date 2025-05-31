@@ -1,16 +1,17 @@
 import argparse
 import os, re, time, sys, random
 import logging
-from tqdm.std import tqdm as std_tqdm
+from tqdm.auto import tqdm as auto_tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 from joblib import Parallel, delayed
-from tqdm_joblib import tqdm_joblib
-from typing import Union
 from nbt import nbt
 import nbtlib
 from anvil import Region, Chunk, EmptyRegion # type: ignore
 import anvil.chunk
 from anvil.versions import *
 from anvil.errors import ChunkNotFound
+
+LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 
 # see args at bottom of script
 def restore_dimension() -> int:
@@ -75,15 +76,16 @@ def restore_dimension() -> int:
                 )
             )
 
-        with tqdm_joblib(
-            desc="Restoration progress",
-            total=len(tasks),
-            unit='reg',
-            dynamic_ncols=True,
-            colour=f'#{random.randint(0, 16777215):06x}'
-        ) as _:
-            n_jobs = os.cpu_count()
+        n_jobs = os.cpu_count()
+        if parsed_args.nopbar:
             Parallel(n_jobs=n_jobs, backend='loky', prefer='processes')(tasks)
+        else:
+            ProgressParallel(
+                desc="Restoration progress",
+                total=len(tasks),
+                unit='reg',
+                n_jobs=n_jobs, backend='loky', prefer='processes'
+            )(tasks)
 
     except KeyboardInterrupt:
         logger.exception(f"World restoration cancelled by keyboard interrupt! Elapsed time: {time.perf_counter() - start_time:.3f} seconds. Exiting...")
@@ -101,105 +103,106 @@ def restore_region(
         region_file: nbt.NBTFile
 ) -> int:
     logger = logger_init(f'restore.region.{idx}')
-    original_region_path = os.path.join(original_region_dir, region_file)
-    active_region_path = os.path.join(active_region_dir, region_file)
-    original_entities_path = os.path.join(original_entities_dir, region_file)
-    active_entities_path = os.path.join(active_entities_dir, region_file)
+    with logging_redirect_tqdm(loggers=[logger], tqdm_class=auto_tqdm):
+        original_region_path = os.path.join(original_region_dir, region_file)
+        active_region_path = os.path.join(active_region_dir, region_file)
+        original_entities_path = os.path.join(original_entities_dir, region_file)
+        active_entities_path = os.path.join(active_entities_dir, region_file)
 
-    if not os.path.exists(original_region_path):
-        logger.info(f"Region {region_file} does not exist in original world, skipping.")
-        return 1
-    elif os.path.getsize(original_region_path) == 0:
-        logger.info(f"Skipping empty region file {region_file}.")
-        return 1
-    elif not region_modified(original_region_path, active_region_path):
-        logger.info(f"Skipping unmodified region file {region_file}.")
-        return 1
-
-    if not os.path.exists(original_entities_path) or os.path.getsize(original_entities_path) == 0:
-        logger.info(f"Entity region {region_file} does not exist in original world, skipping.")
-        restore_entities = False
-    else:
-        restore_entities = True
-
-    regional_x, regional_z = get_region_coords(region_file)
-
-    if parsed_args.boundary:
-        min_x, min_z, max_x, max_z = map(int, parsed_args.boundary)
-        if not (min_x <= regional_x <= max_x and min_z <= regional_z <= max_z):
-            logger.info(f"Region ({regional_x}, {regional_z}) not within allowed boundary ({min_x}, {min_z}) - ({max_x}, {max_z}), skipping.")
+        if not os.path.exists(original_region_path):
+            logger.info(f"Region {region_file} does not exist in original world, skipping.")
+            return 1
+        elif os.path.getsize(original_region_path) == 0:
+            logger.info(f"Skipping empty region file {region_file}.")
+            return 1
+        elif not region_modified(original_region_path, active_region_path):
+            logger.info(f"Skipping unmodified region file {region_file}.")
             return 1
 
-    original_region = Region.from_file(original_region_path)
-    active_region = Region.from_file(active_region_path)
-    restored_region = EmptyRegion(regional_x, regional_z)
-    if restore_entities:
-        original_entities = Region.from_file(original_entities_path)
-        active_entities = Region.from_file(active_entities_path)
-        restored_entities = EmptyRegion(regional_x, regional_z)
+        if not os.path.exists(original_entities_path) or os.path.getsize(original_entities_path) == 0:
+            logger.info(f"Entity region {region_file} does not exist in original world, skipping.")
+            restore_entities = False
+        else:
+            restore_entities = True
 
-    # region > chunk granularity starts here. 32x32 chunks per region
-    region_start_time = time.perf_counter()
-    for chunk_x in range(32):
-        for chunk_z in range(32):
-            # check for active vs. original chunk. If only one exists, default to that one. Region/Entity check decoupled for sanity
-            try:
-                active_region_chunk = Chunk.from_region(active_region, chunk_x, chunk_z)
-            except ChunkNotFound as e:
-                logger.debug(f"({chunk_x + chunk_z}/64) No active chunk at ({chunk_x}, {chunk_z}) found.")
-                active_region_chunk = None
+        regional_x, regional_z = get_region_coords(region_file)
 
-            try:
-                original_region_chunk = Chunk.from_region(original_region, chunk_x, chunk_z)
-                if not active_region_chunk:
-                    restored_region.add_chunk(original_region_chunk)
-            except ChunkNotFound as e:
-                logger.debug(f"({chunk_x + chunk_z}/64) No original chunk at ({chunk_x}, {chunk_z}) found.")
-                if active_region_chunk:
-                    restored_region.add_chunk(active_region_chunk)
-                    logger.debug(f"Keeping active chunk by default.")
-                else:
-                    logger.debug(f"No active or original chunk, skipping.")
-                    continue
-                original_region_chunk = None
+        if parsed_args.boundary:
+            min_x, min_z, max_x, max_z = map(int, parsed_args.boundary)
+            if not (min_x <= regional_x <= max_x and min_z <= regional_z <= max_z):
+                logger.info(f"Region ({regional_x}, {regional_z}) not within allowed boundary ({min_x}, {min_z}) - ({max_x}, {max_z}), skipping.")
+                return 1
 
-            if restore_entities:
-                try:
-                    active_entities_chunk = Chunk.from_region(active_entities, chunk_x, chunk_z)
-                except ChunkNotFound:
-                    logger.debug(f"({chunk_x + chunk_z}/64) No active entities at ({chunk_x}, {chunk_z}) found.")
-                    active_entities_chunk = None
-
-                try:
-                    original_entities_chunk = Chunk.from_region(original_entities, chunk_x, chunk_z)
-                    if not active_entities_chunk:
-                        restored_entities.add_chunk(original_entities_chunk)
-                except ChunkNotFound:
-                    logger.debug(f"({chunk_x + chunk_z}/64) No original entities at ({chunk_x}, {chunk_z}) found.")
-                    if active_entities_chunk:
-                        restored_entities.add_chunk(active_entities_chunk)
-                        logger.debug(f"Keeping active entities by default.")
-                    original_entities_chunk = None
-
-            # if both active & original exist, pass to process_chunk for additional logic to choose. Usually original is chosen.
-            if active_region_chunk and original_region_chunk:
-                add_chunk_if_not_excluded(restored_region, active_region_chunk, original_region_chunk, claimed_chunks=claimed_chunks)
-            if restore_entities and active_entities_chunk and original_entities_chunk:
-                add_chunk_if_not_excluded(restored_entities, active_entities_chunk, original_entities_chunk, claimed_chunks=claimed_chunks)
-            logger.debug(f"Updated chunk ({chunk_x}, {chunk_z}) in {region_file}")
-
-    # end region > chunk loop
-
-    if not parsed_args.preview:
-        restored_region.save(active_region_path)
-        original_mtime = os.path.getmtime(original_region_path)
-        os.utime(active_region_path, (original_mtime, original_mtime))
+        original_region = Region.from_file(original_region_path)
+        active_region = Region.from_file(active_region_path)
+        restored_region = EmptyRegion(regional_x, regional_z)
         if restore_entities:
-            restored_entities.save(active_entities_path)
-            original_mtime = os.path.getmtime(original_entities_path)
-            os.utime(active_entities_path, (original_mtime, original_mtime))
+            original_entities = Region.from_file(original_entities_path)
+            active_entities = Region.from_file(active_entities_path)
+            restored_entities = EmptyRegion(regional_x, regional_z)
 
-    logger.info(f"Updated region ({regional_x}, {regional_z}) in {region_file} in {time.perf_counter() - region_start_time:.3f} seconds")
+        # region > chunk granularity starts here. 32x32 chunks per region
+        region_start_time = time.perf_counter()
+        for chunk_x in range(32):
+            for chunk_z in range(32):
+                # check for active vs. original chunk. If only one exists, default to that one. Region/Entity check decoupled for sanity
+                try:
+                    active_region_chunk = Chunk.from_region(active_region, chunk_x, chunk_z)
+                except ChunkNotFound as e:
+                    logger.debug(f"({chunk_x + chunk_z}/64) No active chunk at ({chunk_x}, {chunk_z}) found.")
+                    active_region_chunk = None
+
+                try:
+                    original_region_chunk = Chunk.from_region(original_region, chunk_x, chunk_z)
+                    if not active_region_chunk:
+                        restored_region.add_chunk(original_region_chunk)
+                except ChunkNotFound as e:
+                    logger.debug(f"({chunk_x + chunk_z}/64) No original chunk at ({chunk_x}, {chunk_z}) found.")
+                    if active_region_chunk:
+                        restored_region.add_chunk(active_region_chunk)
+                        logger.debug(f"Keeping active chunk by default.")
+                    else:
+                        logger.debug(f"No active or original chunk, skipping.")
+                        continue
+                    original_region_chunk = None
+
+                if restore_entities:
+                    try:
+                        active_entities_chunk = Chunk.from_region(active_entities, chunk_x, chunk_z)
+                    except ChunkNotFound:
+                        logger.debug(f"({chunk_x + chunk_z}/64) No active entities at ({chunk_x}, {chunk_z}) found.")
+                        active_entities_chunk = None
+
+                    try:
+                        original_entities_chunk = Chunk.from_region(original_entities, chunk_x, chunk_z)
+                        if not active_entities_chunk:
+                            restored_entities.add_chunk(original_entities_chunk)
+                    except ChunkNotFound:
+                        logger.debug(f"({chunk_x + chunk_z}/64) No original entities at ({chunk_x}, {chunk_z}) found.")
+                        if active_entities_chunk:
+                            restored_entities.add_chunk(active_entities_chunk)
+                            logger.debug(f"Keeping active entities by default.")
+                        original_entities_chunk = None
+
+                # if both active & original exist, pass to process_chunk for additional logic to choose. Usually original is chosen.
+                if active_region_chunk and original_region_chunk:
+                    add_chunk_if_not_excluded(restored_region, active_region_chunk, original_region_chunk, claimed_chunks=claimed_chunks)
+                if restore_entities and active_entities_chunk and original_entities_chunk:
+                    add_chunk_if_not_excluded(restored_entities, active_entities_chunk, original_entities_chunk, claimed_chunks=claimed_chunks)
+                logger.debug(f"Updated chunk ({chunk_x}, {chunk_z}) in {region_file}")
+
+        # end region > chunk loop
+
+        if not parsed_args.preview:
+            restored_region.save(active_region_path)
+            original_mtime = os.path.getmtime(original_region_path)
+            os.utime(active_region_path, (original_mtime, original_mtime))
+            if restore_entities:
+                restored_entities.save(active_entities_path)
+                original_mtime = os.path.getmtime(original_entities_path)
+                os.utime(active_entities_path, (original_mtime, original_mtime))
+
+        logger.info(f"Updated region ({regional_x}, {regional_z}) in {region_file} in {time.perf_counter() - region_start_time:.3f} seconds")
     return 0
 
 # Terrible name :/ refactored ~Cynthia
@@ -286,19 +289,27 @@ def claims_lookup(claims_dir: str, dimension: str) -> set:
 
 def logger_init(name: str = 'restore'):
     logger = logging.getLogger(name)
-    if len(logger.handlers) == 0:
-        fmt = logging.Formatter("%(levelname)s %(name)s:%(lineno)d %(message)s")
+    if len(logger.handlers) == 0 or not isinstance(logger.handlers[-1], TqdmLoggingHandler):
+        fmt = logging.Formatter(LOG_FMT)
         tqdm_handler = TqdmLoggingHandler()
         tqdm_handler.setFormatter(fmt)
         tqdm_handler.stream = sys.stderr
-        logger.handlers = [tqdm_handler]
+        while len(logger.handlers) != 0:
+            logger.removeHandler(logger.handlers[0])
+        logger.addHandler(tqdm_handler)
+        if log_path:  # global variabling all over the place
+            fh = logging.FileHandler(log_path, encoding='utf-8', delay=True)
+            fh.setFormatter(fmt)
+            logging.getLogger().addHandler(fh)
         logger.setLevel(LOG_LEVEL)
     return logger
 
+# tqdm.contrib.logging
+# https://tqdm.github.io/docs/contrib.logging/
 class TqdmLoggingHandler(logging.StreamHandler):
     def __init__(
         self,
-        tqdm_class=std_tqdm  # type: Type[std_tqdm]
+        tqdm_class=auto_tqdm
     ):
         super().__init__()
         self.tqdm_class = tqdm_class
@@ -312,6 +323,28 @@ class TqdmLoggingHandler(logging.StreamHandler):
             raise
         except:  # noqa pylint: disable=bare-except
             self.handleError(record)
+
+# https://stackoverflow.com/a/61900501
+class ProgressParallel(Parallel):
+    def __init__(self, desc, total, unit, *args, **kwargs):
+        self._desc = desc
+        self._total = total
+        self._unit = unit
+        super().__init__(verbose=True, *args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        with auto_tqdm(
+            desc=self._desc, 
+            total=self._total, 
+            unit=self._unit, 
+            dynamic_ncols=True, 
+            colour=f'#{random.randint(0, 16777215):06x}'
+        ) as self._pbar:
+            return Parallel.__call__(self, *args, **kwargs)
+
+    def print_progress(self):
+        self._pbar.n = self.n_completed_tasks
+        self._pbar.refresh()
 
 class Chunk(anvil.chunk.Chunk): # type: ignore
     """
@@ -396,7 +429,6 @@ anvil.Chunk = Chunk
 anvil.chunk.Chunk = Chunk
 
 # cli org
-
 if __name__ == '__main__':
     # Set up argument parser
     parser = argparse.ArgumentParser(
@@ -411,23 +443,48 @@ example:
     parser.add_argument('-e', '--exclude', nargs='*', type=str, choices=['claims'], default=[], help='indicate what features to exclude from restoration. Currently only supports claims.')
     parser.add_argument('-b', '--boundary', nargs=4, type=int, metavar=('minX', 'minY', 'maxX', 'maxY'), help='a drawn boundary box. Regions outside the box are not restored, only those within. Expects REGIONAL coordinates.')
     parser.add_argument('-p', '--preview', action='store_true', help='preview changes without saving.')
-    loud_or_not_group = parser.add_mutually_exclusive_group()
-    loud_or_not_group.add_argument('-v', '--verbose', action='store_true', help='add some extra print messages to see active progress. Cannot be used with -m.')
-    loud_or_not_group.add_argument('-m', '--mute', action='store_true', help='mute all log output and only display a progress bar. Error messages will still be shown. Cannot be used with -v.')
+
+    display_g = parser.add_argument_group('display options')
+    display_mutx_g = display_g.add_mutually_exclusive_group()
+    display_mutx_g.add_argument('-v', '--verbose', action='store_true', help='add some extra print messages to see active progress. Cannot be used with -q.')
+    display_mutx_g.add_argument('-q', '--quiet', action='store_true', help='mute all log output and only display a progress bar. Error messages will still be shown. Cannot be used with -v.')
+    display_g.add_argument('--no-pbar', dest='nopbar', action='store_true', help='disable the progress bar. Can be helpful when piping output into a log file.')
+
+    log_options_g = parser.add_argument_group('log options')
+    log_options_mutx_g = log_options_g.add_mutually_exclusive_group()
+    log_options_mutx_g.add_argument('--log', type=str, default='', help='also create a copy of the log in the specified log file.')
+    log_options_mutx_g.add_argument('--logf', type=str, default='', help='same as --log, but automatically creates missing directories.')
+
     parsed_args = parser.parse_args()
 
+    log_path = parsed_args.log if parsed_args.log else parsed_args.logf
+    if log_path:
+        if not os.path.exists(os.path.dirname(log_path)):
+            if parsed_args.logf or input('One or more log file directories missing. Create missing dirs? (y/N)').lower() != 'y':
+                print('Aborting.')
+                sys.exit(1)
+            os.makedirs(os.path.dirname(log_path))
+        
     # Set up logger
     logging.basicConfig()
     # Logging format
-    fmt = logging.Formatter("%(levelname)s %(name)s:%(lineno)d %(message)s")
+    fmt = logging.Formatter(LOG_FMT)
+    # tqdm interoperability
     tqdm_handler = TqdmLoggingHandler()
     tqdm_handler.setFormatter(fmt)
     tqdm_handler.stream = sys.stderr
-    logging.getLogger().handlers = [tqdm_handler]
+    while len(logging.getLogger().handlers) != 0:
+        logging.getLogger().removeHandler(logging.getLogger().handlers[0])
+    logging.getLogger().addHandler(tqdm_handler)
+    # File handler (if requested)
+    if log_path:
+        fh = logging.FileHandler(log_path, mode='w', encoding='utf-8', delay=True)
+        fh.setFormatter(fmt)
+        logging.getLogger().addHandler(fh)
     # Verbose / logging level
     if parsed_args.verbose:
         LOG_LEVEL = logging.DEBUG
-    elif parsed_args.mute:
+    elif parsed_args.quiet:
         LOG_LEVEL = logging.ERROR
     else:
         LOG_LEVEL = logging.INFO
@@ -460,4 +517,8 @@ example:
     #   The library as a whole isn't designed for entity chunks, which is more of our fault for use case, but can be fixed.
 
     # Call main function
-    sys.exit(restore_dimension())
+    ret_code = restore_dimension()
+    # Cleanup
+    if log_path:
+        fh.close()
+    sys.exit(ret_code)
