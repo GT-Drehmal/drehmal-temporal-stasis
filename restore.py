@@ -1,5 +1,5 @@
 import argparse
-import os, re, time, sys, random
+import os, glob, re, time, sys, random
 import logging
 from tqdm.auto import tqdm as auto_tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
@@ -28,6 +28,15 @@ def restore_dimension() -> int:
         active_region_dir = os.path.join(parsed_args.active, 'region')
         original_entities_dir = os.path.join(parsed_args.original, 'entities')
         active_entities_dir = os.path.join(parsed_args.active, 'entities')
+
+        # Sanity check to prevent accidentally modifying original world
+        if not os.path.exists(os.path.join(parsed_args.active, '.restore.override')):
+            latest_original = max(glob.glob(os.path.join(original_region_dir, '*.mca')), key=os.path.getmtime)
+            latest_active = max(glob.glob(os.path.join(active_region_dir, '*.mca')), key=os.path.getmtime)
+            if latest_original > latest_active:
+                logger.error('HEADS UP! The original world was modified more recently than the active world. Are you sure you provided the positional arguments in the correct order?')
+                logger.error('To ignore this check, create a file named ".restore.override" in the active world and rerun the command.')
+                return -1
 
         claimed_chunks = None
         dimension = None
