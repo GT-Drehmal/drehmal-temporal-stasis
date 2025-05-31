@@ -288,25 +288,45 @@ def claims_lookup(claims_dir: str, dimension: str) -> set:
     return claimed_chunks
 
 def logger_init(name: str = 'restore'):
+    # Reconfigure root logger for concurrent env (env state is not shared)
+    root_logger = logging.getLogger()
+    fmt = logging.Formatter(LOG_FMT)
+    while len(root_logger.handlers) != 0:
+        root_logger.removeHandler(root_logger.handlers[0])
+    # tqdm stream handler
+    tqdm_handler = tqdmStreamHandler()
+    tqdm_handler.setFormatter(fmt)
+    tqdm_handler.stream = sys.stderr
+    if parsed_args.quiet:
+        tqdm_handler.setLevel(logging.ERROR)
+    elif parsed_args.verbose:
+        tqdm_handler.setLevel(logging.DEBUG)
+    else:
+        tqdm_handler.setLevel(logging.INFO)
+    root_logger.addHandler(tqdm_handler)
+    if log_path:  # global variabling all over the place (see if __name__ for logic)
+        # File handler
+        fh = logging.FileHandler(log_path, encoding='utf-8')
+        fh.setFormatter(fmt)
+        if parsed_args.verbose:
+            fh.setLevel(logging.DEBUG)
+        root_logger.addHandler(fh)
     logger = logging.getLogger(name)
-    if len(logger.handlers) == 0 or not isinstance(logger.handlers[-1], TqdmLoggingHandler):
-        fmt = logging.Formatter(LOG_FMT)
-        tqdm_handler = TqdmLoggingHandler()
-        tqdm_handler.setFormatter(fmt)
-        tqdm_handler.stream = sys.stderr
-        while len(logger.handlers) != 0:
-            logger.removeHandler(logger.handlers[0])
-        logger.addHandler(tqdm_handler)
-        if log_path:  # global variabling all over the place
-            fh = logging.FileHandler(log_path, encoding='utf-8', delay=True)
-            fh.setFormatter(fmt)
-            logging.getLogger().addHandler(fh)
-        logger.setLevel(LOG_LEVEL)
+    # # Configure new logger if it does not have any handlers
+    # # because for some reason it can inherit file handler and not stream handler :///
+    # # Now it suddenly decides to work again and I do not know why
+    # if len(logger.handlers) == 0:
+    #     fmt = logging.Formatter(LOG_FMT)
+    #     tqdm_handler = TqdmLoggingHandler()
+    #     tqdm_handler.setFormatter(fmt)
+    #     tqdm_handler.stream = sys.stderr
+    #     logger.addHandler(tqdm_handler)
+    #     logger.setLevel(LOG_LEVEL)
     return logger
 
 # tqdm.contrib.logging
 # https://tqdm.github.io/docs/contrib.logging/
-class TqdmLoggingHandler(logging.StreamHandler):
+class tqdmStreamHandler(logging.StreamHandler):
     def __init__(
         self,
         tqdm_class=auto_tqdm
@@ -330,7 +350,7 @@ class ProgressParallel(Parallel):
         self._desc = desc
         self._total = total
         self._unit = unit
-        super().__init__(verbose=True, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __call__(self, *args, **kwargs):
         with auto_tqdm(
@@ -370,58 +390,62 @@ class Chunk(anvil.chunk.Chunk): # type: ignore
         ``self.data['TileEntities']`` as an attribute for easier use
     """
 
-    __slots__ = ("version", "data", "x", "z", "tile_entities", "_logger")
+    __slots__ = ("version", "data", "x", "z", "tile_entities")
+    _logger = logging.root  # Initialized in if __main
 
     def __init__(self, nbt_data: nbt.NBTFile):
-        self._logger = logger_init('restore.Chunk')
-        self._logger.debug(f'Instantiating Chunk for NBT file {nbt_data.filename}')
+        # Chunk._logger.debug(f'Instantiating Chunk for NBT file {id(nbt_data.file)}')
         try:
             self.version = nbt_data["DataVersion"].value
-            self._logger.debug(f'Chunk data version is {self.version}')
+            Chunk._logger.debug(f'Chunk data version is {self.version}')
         except KeyError:
             self.version = VERSION_PRE_15w32a
-            self._logger.debug(f'Assuming pre-1.9 snapshot 15w32a due to missing Data Version')
+            Chunk._logger.debug(f'Assuming pre-1.9 snapshot 15w32a due to missing Data Version')
 
         if self.version >= VERSION_21w43a:
             self.data = nbt_data
             if "block_entities" in self.data:
-                self._logger.debug('Using block_entities as tile_entities')
+                Chunk._logger.debug('Using block_entities as tile_entities')
                 self.tile_entities = self.data["block_entities"]
             elif "Entities" in self.data:
-                self._logger.debug('Using Entities as tile_entities')
+                Chunk._logger.debug('Using Entities as tile_entities')
                 self.tile_entities = self.data["Entities"]
             else:
-                self._logger.debug('Leaving tile_entities blank')
+                Chunk._logger.debug('Leaving tile_entities blank')
                 self.tile_entities = [] 
         else:
             try:
                 self.data = nbt_data["Level"]
                 if "TileEntities" in self.data:
-                    self._logger.debug('Using TileEntities as tile_entities')
+                    Chunk._logger.debug('Using TileEntities as tile_entities')
                     self.tile_entities = self.data["TileEntities"]
             except KeyError:
                 self.data = nbt_data
                 if "TileEntities" in self.data:
-                    self._logger.debug('Using TileEntities as tile_entities')
+                    Chunk._logger.debug('Using TileEntities as tile_entities')
                     self.tile_entities = self.data["TileEntities"]
                 else:
-                    self._logger.debug('Using Entities as tile_entities')
+                    Chunk._logger.debug('Using Entities as tile_entities')
                     self.tile_entities = self.data.get("Entities", [])
 
         if (("xPos" not in nbt_data) or ("zPos" not in nbt_data)):
             try: # entity files use position
-                self._logger.debug('Looking for Position in entity file')
+                Chunk._logger.debug('Looking for Position in entity file')
                 self.x = self.data["Position"].value[0]
                 self.z = self.data["Position"].value[1]
             except KeyError: # sometimes some entity files are magically dataversion 2730 and mystically have an extra layer compound with no key.
-                self._logger.debug('Looking for Position in data version 2730 entity file')
+                Chunk._logger.debug('Looking for Position in data version 2730 entity file')
                 self.x = self.data[""]["Position"].value[0]
                 self.z = self.data[""]["Position"].value[1]
         else: # region files use xpos zpos
-            self._logger.debug('Extracting positions data from region file')
+            Chunk._logger.debug('Extracting positions data from region file')
             self.x = self.data["xPos"].value
             self.z = self.data["zPos"].value
-        self._logger.debug(f'Generated Chunk instance for NBT file {nbt_data.filename}')
+        # Chunk._logger.debug(f'Generated Chunk instance for NBT file {id(nbt_data.file)}')
+
+    @classmethod
+    def logger_init(cls):
+        cls._logger = logger_init('restore.Chunk')
 
     def __repr__(self):
         return f'Chunk({self.x},{self.z})'
@@ -445,14 +469,13 @@ example:
     parser.add_argument('-p', '--preview', action='store_true', help='preview changes without saving.')
 
     display_g = parser.add_argument_group('display options')
-    display_mutx_g = display_g.add_mutually_exclusive_group()
-    display_mutx_g.add_argument('-v', '--verbose', action='store_true', help='add some extra print messages to see active progress. Cannot be used with -q.')
-    display_mutx_g.add_argument('-q', '--quiet', action='store_true', help='mute all log output and only display a progress bar. Error messages will still be shown. Cannot be used with -v.')
+    display_g.add_argument('-v', '--verbose', action='store_true', help='add some extra print messages to see active progress. Will affect file output (i.e. --log/--logf).')
+    display_g.add_argument('-q', '--quiet', action='store_true', help='mute all log output and only display a progress bar. Error messages will still be shown. Does not affect file output (i.e. --log/--logf).')
     display_g.add_argument('--no-pbar', dest='nopbar', action='store_true', help='disable the progress bar. Can be helpful when piping output into a log file.')
 
     log_options_g = parser.add_argument_group('log options')
     log_options_mutx_g = log_options_g.add_mutually_exclusive_group()
-    log_options_mutx_g.add_argument('--log', type=str, default='', help='also create a copy of the log in the specified log file.')
+    log_options_mutx_g.add_argument('--log', type=str, default='', help='also create a copy of the log (excluding the progress bar) in the specified log file.')
     log_options_mutx_g.add_argument('--logf', type=str, default='', help='same as --log, but automatically creates missing directories.')
 
     parsed_args = parser.parse_args()
@@ -464,33 +487,11 @@ example:
                 print('Aborting.')
                 sys.exit(1)
             os.makedirs(os.path.dirname(log_path))
-        
-    # Set up logger
-    logging.basicConfig()
-    # Logging format
-    fmt = logging.Formatter(LOG_FMT)
-    # tqdm interoperability
-    tqdm_handler = TqdmLoggingHandler()
-    tqdm_handler.setFormatter(fmt)
-    tqdm_handler.stream = sys.stderr
-    while len(logging.getLogger().handlers) != 0:
-        logging.getLogger().removeHandler(logging.getLogger().handlers[0])
-    logging.getLogger().addHandler(tqdm_handler)
-    # File handler (if requested)
-    if log_path:
-        fh = logging.FileHandler(log_path, mode='w', encoding='utf-8', delay=True)
-        fh.setFormatter(fmt)
-        logging.getLogger().addHandler(fh)
-    # Verbose / logging level
-    if parsed_args.verbose:
-        LOG_LEVEL = logging.DEBUG
-    elif parsed_args.quiet:
-        LOG_LEVEL = logging.ERROR
-    else:
-        LOG_LEVEL = logging.INFO
-    logging.getLogger().setLevel(LOG_LEVEL)
-    # Global logger. Functions may override this with their own logger instance.
+    
+    # Set up root logger & global logger ('restore')
+    # Functions may override this with their own logger instance.
     logger = logger_init()
+    Chunk.logger_init()
 
     logger.debug(f'''Arguments: {parsed_args}''')
 
@@ -519,6 +520,4 @@ example:
     # Call main function
     ret_code = restore_dimension()
     # Cleanup
-    if log_path:
-        fh.close()
     sys.exit(ret_code)
