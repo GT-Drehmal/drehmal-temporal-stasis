@@ -67,6 +67,8 @@ def restore_dimension() -> int:
             logger.warning(f'Running under PREVIEW mode. No changes will be committed to the files.')
         logger.info(f"Beginning restoration of {len(os.listdir(active_region_dir))} regions...")
 
+        logger_init('restore.region')
+
         # iterate through region directories for regions, parse chunks in regions for both entities/blocks, swap out changed chunks
         tasks = []
         for idx, region_file in enumerate(os.listdir(active_region_dir), start=1):
@@ -300,9 +302,6 @@ def logger_init(name: str = 'restore'):
     # Reconfigure root logger for concurrent env (env state is not shared)
     root_logger = logging.getLogger()
     fmt = logging.Formatter(LOG_FMT)
-    while len(root_logger.handlers) != 0:
-        root_logger.removeHandler(root_logger.handlers[0])
-    # tqdm stream handler
     tqdm_handler = tqdmStreamHandler()
     tqdm_handler.setFormatter(fmt)
     tqdm_handler.stream = sys.stderr
@@ -312,23 +311,27 @@ def logger_init(name: str = 'restore'):
         tqdm_handler.setLevel(logging.DEBUG)
     else:
         tqdm_handler.setLevel(logging.INFO)
-    root_logger.addHandler(tqdm_handler)
-    if log_path:  # global variabling all over the place (see if __name__ for logic)
-        # File handler
-        fh = logging.FileHandler(log_path, encoding='utf-8')
-        fh.setFormatter(fmt)
-        if parsed_args.verbose:
-            fh.setLevel(logging.DEBUG)
-        else:
-            fh.setLevel(logging.INFO)
-        root_logger.addHandler(fh)
-    root_logger.setLevel(logging.DEBUG)
+    if len(root_logger.handlers) > 0 and root_logger.handlers[0].formatter and root_logger.handlers[0].formatter._fmt != LOG_FMT:
+        while len(root_logger.handlers) != 0:
+            root_logger.removeHandler(root_logger.handlers[0])
+        # tqdm stream handler
+        root_logger.addHandler(tqdm_handler)
+        if log_path:  # global variabling all over the place (see if __name__ for logic)
+            # File handler
+            fh = logging.FileHandler(log_path, encoding='utf-8')
+            fh.setFormatter(fmt)
+            if parsed_args.verbose:
+                fh.setLevel(logging.DEBUG)
+            else:
+                fh.setLevel(logging.INFO)
+            root_logger.addHandler(fh)
+        root_logger.setLevel(logging.DEBUG)
     logger = logging.getLogger(name)
     # # Configure new logger if it does not have any handlers
     # # because for some reason it can inherit file handler and not stream handler :///
     # # Now it suddenly decides to work again and I do not know why
-    # if len(logger.handlers) == 0:
-    #     logger.addHandler(tqdm_handler)
+    if len(logger.handlers) == 0:
+        logger.addHandler(tqdm_handler)
     return logger
 
 # tqdm.contrib.logging
