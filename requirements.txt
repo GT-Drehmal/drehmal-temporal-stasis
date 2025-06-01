@@ -1,0 +1,7 @@
+anvil-parser2==0.10.6
+frozendict==2.4.6
+joblib==1.5.1
+NBT==1.5.1
+nbtlib==2.0.4
+numpy==2.2.6
+tqdm==4.67.1
