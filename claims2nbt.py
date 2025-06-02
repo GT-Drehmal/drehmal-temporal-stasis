@@ -1,64 +1,76 @@
 import argparse, csv, os
 from nbtlib import File, Compound, List, Int, Long, String
 
+
 def claims2nbt(args):
     # find csv in current directory
-    csv_files = [f for f in os.listdir('.') if f.lower().endswith('.csv')]
+    csv_files = [f for f in os.listdir(".") if f.lower().endswith(".csv")]
     if not csv_files:
         raise FileNotFoundError("No .csv file found in the current directory.")
     csv_path = csv_files[0]
 
-    claims_dir = 'player-claims'
+    claims_dir = "player-claims"
     os.makedirs(claims_dir, exist_ok=True)
 
     # parse csv and write dict
     locations = {}
-    with open(csv_path, newline='') as csvfile:
+    with open(csv_path, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            loc = row['Location']
-            x = int(row['Chunk X'])
-            z = int(row['Chunk Z'])
-            dimension = row['Dimension']
+            loc = row["Location"]
+            x = int(row["Chunk X"])
+            z = int(row["Chunk Z"])
+            dimension = row["Dimension"]
             locations.setdefault(loc, []).append((x, z, dimension))
 
     # write nbt files
-    counter = 2 # NOTE: See 'a)' at bottom.
+    counter = 2  # NOTE: See 'a)' at bottom.
     for loc, coords in locations.items():
         uuid_suffix = f"{counter:012d}"
-        filename = f"00000000-0000-0000-0000-{uuid_suffix}.nbt" # NOTE: See 'b)' at bottom.
+        filename = f"00000000-0000-0000-0000-{uuid_suffix}.nbt"  # NOTE: See 'b)' at bottom.
         output_path = os.path.join(claims_dir, filename)
 
         dimensions = {}
         for x, z, dimension in coords:
             dimensions.setdefault(dimension, []).append((x, z))
-        
+
         dimension_compounds = {
-            dimension: Compound({
-                "claims": List([
-                    Compound({
-                        "state": Compound({"forceloaded": Int(0), "subConfigIndex": Int(-1)}), # NOTE: see 'd)' at bottom.
-                        "positions": List([Compound({"x": Int(x), "z": Int(z)}) for (x,z) in coords])
-                    })
-                ])
-            })
+            dimension: Compound(
+                {
+                    "claims": List(
+                        [
+                            Compound(
+                                {
+                                    "state": Compound(
+                                        {"forceloaded": Int(0), "subConfigIndex": Int(-1)}
+                                    ),  # NOTE: see 'd)' at bottom.
+                                    "positions": List([Compound({"x": Int(x), "z": Int(z)}) for (x, z) in coords]),
+                                }
+                            )
+                        ]
+                    )
+                }
+            )
             for dimension, coords in dimensions.items()
         }
 
-        nbt_data = Compound({
-            "confirmedActivity": Long(10200546), # NOTE: See 'c)' at bottom.
-            "username": String(loc),
-            "dimensions": Compound(dimension_compounds)
-        })
+        nbt_data = Compound(
+            {
+                "confirmedActivity": Long(10200546),  # NOTE: See 'c)' at bottom.
+                "username": String(loc),
+                "dimensions": Compound(dimension_compounds),
+            }
+        )
 
         nbt_file = File(nbt_data)
         nbt_file.save(output_path)
         print(f"Wrote NBT for location '{loc}' to {output_path}")
         counter += 1
 
+
 # cli org
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run in same folder as .csv with headers Location, Chunk X, Chunk Z, and Dimensions. Generates folder of OPaC-compatible .nbt files."
     )
@@ -66,7 +78,7 @@ if __name__ == '__main__':
 
     claims2nbt(args)
 
-    #NOTE:
+    # NOTE:
     # a) 'counter = 2'
     #   Counter starts at 2 when naming .nbt files because 0 and 1 are reserved.
     #   `00000000-0000-0000-0000-000000000000.nbt` is Server claims.
@@ -88,7 +100,7 @@ if __name__ == '__main__':
     #   State compound is hardcoded to these for now.
     #   Will need to update later when we configure the correct configs for server-factions.
 
-    #TODO:
+    # TODO:
     # Write to-do section lol
     # Change csv check to abort on multiple .csv
     # Add correct error throws/behaviors if csv parse doesn't find correct headers
