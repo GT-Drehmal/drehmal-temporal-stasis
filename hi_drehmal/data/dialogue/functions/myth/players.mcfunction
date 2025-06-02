@@ -36,11 +36,11 @@ execute if score #retinaportal bool matches 1 run function dialogue:myth/dia11/3
 
 #stasis facility
 
-execute if score #myth_dia12_1 bool matches 1.. unless score #myth_dia12_2 bool matches 1.. positioned 778 94 690 if entity @s[distance=..5] run function dialogue:myth/dia12/2stasisfacility/0
+execute in minecraft:overworld if score #myth_dia12_1 bool matches 1.. unless score #myth_dia12_2 bool matches 1.. positioned 778 94 690 if entity @s[distance=..5] run function dialogue:myth/dia12/2stasisfacility/0
 
-execute if score #myth_dia12_1 bool matches 1.. unless score #myth_dia12_3 bool matches 1.. positioned 778 3 549 if entity @s[distance=..15] run function dialogue:myth/dia12/3stasischamber/0
+execute in minecraft:overworld if score #myth_dia12_1 bool matches 1.. unless score #myth_dia12_3 bool matches 1.. positioned 778 3 549 if entity @s[distance=..15] run function dialogue:myth/dia12/3stasischamber/0
 
-execute if score #myth_dia12_3 bool matches 1.. unless score #myth_dia12_4 bool matches 1.. positioned 778 3.00 525 if entity @s[distance=..6] run function dialogue:myth/dia12/4muralroom/0
+execute in minecraft:overworld if score #myth_dia12_3 bool matches 1.. unless score #myth_dia12_4 bool matches 1.. positioned 778 3.00 525 if entity @s[distance=..6] run function dialogue:myth/dia12/4muralroom/0
 
 
 
