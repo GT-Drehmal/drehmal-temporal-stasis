@@ -270,3 +270,5 @@ scoreboard players reset #t.vir.spawned? bool
 scoreboard players reset #fzy_picked? bool
 
 scoreboard players reset #b.passive_alive? bool
+
+say [Temporal Stasis] Rollback complete.
