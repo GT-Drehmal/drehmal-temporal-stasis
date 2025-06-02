@@ -169,6 +169,9 @@ scoreboard players set #stump_portal bool 0
 # syzygy
 scoreboard players reset #szy_complete bool
 scoreboard players reset #syzygy_spawned? bool
+scoreboard players set #syzygytrials timer 0
+scoreboard players set #syzygytrials y 0
+scoreboard players reset #syzygy_progress? bool
 
 # rihelma trial
 scoreboard players reset #rihelmalight1 bool
@@ -210,6 +213,9 @@ scoreboard players set #dahr_pearl_5 bool 0
 # aeongale
 scoreboard players set #aeongale x 0
 scoreboard players set #aeoncap1 x 0
+scoreboard players set #aeoncap1 z 0
+scoreboard players set #aeongaledoor x 0
+scoreboard players set #aeongaledoor y 0
 
 # dahroehl
 scoreboard players reset #dahroehl.rb1 timer
