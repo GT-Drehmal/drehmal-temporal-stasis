@@ -1,0 +1,97 @@
+[playerConfig]
+
+[playerConfig.claims]
+bonusChunkForceloads = 0
+color = 14483701
+usedSub = "default"
+usedServerSub = "default"
+name = ""
+bonusChunkClaims = 0
+protectClaimedChunks = false
+
+[playerConfig.claims.protection]
+netherPortalsPlayers = 0
+projectileHitHostileSpawn = 0
+pistonBarrier = false
+spawnersHostile = false
+entitiesFromPlayers = 2
+netherPortalsMobs = 0
+itemPickupPlayers = 2
+playersFromMobs = false
+fromAllyParties = false
+entitiesRedirect = true
+neighborChunksItemUse = false
+itemPickupMobs = 0
+tripwireFromOther = 0
+entitiesFromExplosions = true
+itemTossRedirect = false
+playerLightning = 2
+entitiesFromMobs = 0
+playersFromPlayers = false
+platesFromOther = 0
+blocksFromOther = 2
+dispenserBarrier = false
+entitiesFromOther = 0
+netherPortalsOther = 0
+naturalSpawnHostile = false
+fromParty = false
+blocksRedirect = true
+projectileHitFriendlySpawn = 0
+mobLoot = 0
+overrideMobGriefingRule = false
+fluidBarrier = false
+tripwireFromPlayers = 0
+cropTrample = true
+blocksFromExplosions = false
+playersFromOther = false
+tripwireFromMobs = 0
+chorusFruitTeleport = 0
+buttonsFromProjectiles = 0
+xpPickup = 0
+itemUse = 0
+spawnersFriendly = false
+platesFromPlayers = 0
+entitiesFromFire = true
+raids = false
+itemPickupRedirect = false
+blocksFromMobs = 2
+playersRedirect = true
+targetsFromProjectiles = 0
+blocksFromPlayers = 2
+itemTossPlayers = 0
+platesFromMobs = 0
+fromFrostWalking = 0
+itemTossMobs = 0
+itemTossOther = 0
+playerDeathLoot = 0
+naturalSpawnFriendly = false
+fromFireSpread = true
+
+[playerConfig.claims.protection.exceptionGroups]
+
+[playerConfig.claims.protection.exceptionGroups.block]
+
+[playerConfig.claims.protection.exceptionGroups.block.break]
+Crops = 0
+
+[playerConfig.claims.protection.exceptionGroups.block.interact]
+Containers = 0
+
+[playerConfig.claims.protection.exceptionGroups.entity]
+
+[playerConfig.claims.protection.exceptionGroups.entity.anyItemInteract]
+Villagers = 0
+
+[playerConfig.claims.protection.exceptionGroups.entity.entityAccess]
+Zombies = 0
+
+[playerConfig.claims.forceload]
+offlineForceload = false
+enabled = false
+
+[playerConfig.parties]
+shareLocationWithParty = true
+shareLocationWithMutualAllyParties = true
+name = ""
+receiveLocationsFromMutualAllyParties = true
+receiveLocationsFromParty = true
