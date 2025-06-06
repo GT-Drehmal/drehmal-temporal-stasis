@@ -6,6 +6,10 @@ scoreboard players set #electrowater x 0
 
 function core:scene/orbitpuzzle/reset
 
+#--------------------------------
+# Drehmal addons
+#--------------------------------
+function daddons:reset
 
 
 function core:resetbools

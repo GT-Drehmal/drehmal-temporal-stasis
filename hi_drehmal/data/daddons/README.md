@@ -1,0 +1,2 @@
+# Drehmal Addons
+This namespace holds some enhancements / bug fixes that do not belong in a standalone datapack (e.g. `stasis`) nor directly added to an existing file. Each function is expected to be called exactly once by a specific vanilla Drehmal function. See their comments for further info.

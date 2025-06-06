@@ -963,3 +963,8 @@ scoreboard objectives add usedNetheriteP minecraft.used:minecraft.netherite_pick
 scoreboard players set #scarecrow bool 1
 scoreboard objectives add whispersong_cd dummy
 scoreboard objectives add InvulFrame dummy
+
+#--------------------------------
+# Drehmal addons
+#--------------------------------
+function daddons:init

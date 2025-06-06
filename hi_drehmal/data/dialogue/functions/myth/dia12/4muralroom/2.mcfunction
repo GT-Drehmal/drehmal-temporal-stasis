@@ -4,3 +4,5 @@ execute as @a at @s run playsound minecraft:dcustom.entity.ender_dragon.ambient 
 
 
 tellraw @a ["","[",{"text":"The Mythoclast","color":"gold"},"] I’m pleased to see that my name still has that effect on physical minds."]
+
+scoreboard players set @a sts_heard_name 1

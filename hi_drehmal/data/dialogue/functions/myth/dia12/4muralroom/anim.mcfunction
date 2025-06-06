@@ -31,18 +31,18 @@ execute if score #muralanim timer matches 1 run fill 776 6 515 780 2 515 air
 
 
 
-execute if score #muralanim timer matches 1 run effect give @a minecraft:nausea 10 4 true
-execute if score #muralanim timer matches 1 at @a run playsound minecraft:dcustom.entity.elder_guardian.curse ambient @a 26506 80 -495 10 0
-execute if score #muralanim timer matches 1 at @a run playsound minecraft:dcustom.entity.wither.spawn ambient @a 26506 80 -495 10 0
-execute if score #muralanim timer matches 1 at @a run playsound minecraft:dcustom.entity.wither.spawn ambient @a 26506 80 -495 10 0
-execute if score #muralanim timer matches 1 at @a run playsound minecraft:dcustom.block.portal.trigger ambient @a 26506 80 -495 10 0
+execute if score #muralanim timer matches 1 as @a unless score @s sts_heard_name matches 1 run effect give @s minecraft:nausea 10 4 true
+execute if score #muralanim timer matches 1 as @a unless score @s sts_heard_name matches 1 at @s run playsound minecraft:dcustom.entity.elder_guardian.curse ambient @s 26506 80 -495 10 0
+execute if score #muralanim timer matches 1 as @a unless score @s sts_heard_name matches 1 at @s run playsound minecraft:dcustom.entity.wither.spawn ambient @s 26506 80 -495 10 0
+execute if score #muralanim timer matches 1 as @a unless score @s sts_heard_name matches 1 at @s run playsound minecraft:dcustom.entity.wither.spawn ambient @s 26506 80 -495 10 0
+execute if score #muralanim timer matches 1 as @a unless score @s sts_heard_name matches 1 at @s run playsound minecraft:dcustom.block.portal.trigger ambient @s 26506 80 -495 10 0
 execute if score #muralanim timer matches 1 at @a run function dialogue:myth/scream
 
-execute if score #muralanim timer matches 40 run tellraw @a {"text":"Your mind goes numb…","italic":true,"color":"dark_gray"}
+execute if score #muralanim timer matches 40 as @a unless score @s sts_heard_name matches 1 at @s run tellraw @s {"text":"Your mind goes numb…","italic":true,"color":"dark_gray"}
 
-execute if score #muralanim timer matches 45 run tellraw @a {"text":"Your body feels weak…","italic":true,"color":"dark_gray"}
+execute if score #muralanim timer matches 45 as @a unless score @s sts_heard_name matches 1 at @s run tellraw @s {"text":"Your body feels weak…","italic":true,"color":"dark_gray"}
 
-execute if score #muralanim timer matches 50 run tellraw @a {"text":"You feel submerged…","italic":true,"color":"dark_gray"}
+execute if score #muralanim timer matches 50 as @a unless score @s sts_heard_name matches 1 at @s run tellraw @s {"text":"You feel submerged…","italic":true,"color":"dark_gray"}
 
 
 execute if score #muralanim timer matches 1.. run particle minecraft:squid_ink 769.00 18.55 491.51 0.1 10 10 0 5000 force
