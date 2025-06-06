@@ -253,8 +253,6 @@ scoreboard players reset #sunmoon4_dead? bool
 
 scoreboard players reset #loe_p1 bool
 
-scoreboard players reset #creditsplayed? bool
-
 scoreboard players reset #av_ani bool
 scoreboard players reset #ad_ani bool
 scoreboard players reset #ex_ani bool
