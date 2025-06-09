@@ -284,9 +284,9 @@ excluded_players = [  # specify static player ids to exclude from restore protec
     "00000000-0000-0000-0000-000000000000",  # 'Server' player
     "00000000-0000-0000-0000-000000000001",  # 'Expiration' player
 ] + [
-    f"00000000-0000-0000-0000-{i:012d}" for i in range(2, 88)
-] + [ # 88 is 'Terminus'
-    f"00000000-0000-0000-0000-{i:012d}" for i in range(89, 100)
+    f"00000000-0000-0000-0000-{i:012d}" for i in range(2, 93)
+] + [ # 93 is 'Terminus'
+    f"00000000-0000-0000-0000-{i:012d}" for i in range(94, 250)
 ] # overworld + lo'dahr claims generated from csv
 # TODO: Make not hard coded?
 
