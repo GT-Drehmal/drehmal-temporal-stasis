@@ -1,3 +1,4 @@
+tellraw @a "[core:scene/lodahr_portals/main_item] I'm being run!!!!"
 # Executed as amethyst shard item entity (entities:item_tick_special, entities:dropped_items/scan)
 
 #loeturia

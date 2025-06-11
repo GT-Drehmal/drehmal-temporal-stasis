@@ -1,3 +1,5 @@
+tellraw @a "[core:scene/lodahr_portals/main] I'm being run!!!!"
+
 #this file executes as all celestial chondrules once every 5 ticks to check their position
 #referenced from item_tick
 

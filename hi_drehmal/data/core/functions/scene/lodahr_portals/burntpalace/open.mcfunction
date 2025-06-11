@@ -1,3 +1,4 @@
+tellraw @a "[core:scene/lodahr_portals/burntpalace/open] I'm being run!!!!"
 execute unless score #bp_portal timer matches -999999.. run scoreboard players set #bp_portal timer 0
 execute unless score #bp_portal timer matches 220.. run scoreboard players add #bp_portal timer 1
 execute if score #bp_portal timer matches 220.. run scoreboard players set #bp_portal bool 2
