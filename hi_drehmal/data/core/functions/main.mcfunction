@@ -201,5 +201,5 @@ execute unless score #termstart bool matches 1 run particle minecraft:dust 1 0 0
 execute if score #10terminus100 bool matches 1 unless score #clearancedialogue bool matches 1 run function core:scene/avsal/perms/0
 
 
-function core:scene/lodahr_portals/main
+execute if score #lodahr_beento bool matches 1 run function core:scene/lodahr_portals/main
 
