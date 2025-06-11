@@ -35,7 +35,8 @@ execute if predicate entities:nether_star store success score #load_this temp ru
 execute if predicate entities:golden_apple store success score #load_this temp run tag @s add golden_apple
 execute if predicate entities:item_nondespawning run tag @s add no_magnet
 execute if predicate entities:avhorse_armor if entity @e[type=horse,distance=..10,tag=avHorse,predicate=!entities:wearing_avhorse_armor] run function entities:dropped_items/unlink_avhorse_owner
-execute if predicate entities:netheritescrap store success score #load_this temp run tag @s add celestial_scrap
+# Modified to disable lodahr portals before 75%
+execute if score #lodahr_beento bool matches 1 if predicate entities:netheritescrap store success score #load_this temp run tag @s add celestial_scrap
 
 tag @s add scanned
 execute if score #load_this temp matches 0 run tag @s add unloaded.item
