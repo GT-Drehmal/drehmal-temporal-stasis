@@ -1,4 +1,4 @@
-
+# Executed as amethyst shard item entity (entities:item_tick_special, entities:dropped_items/scan)
 
 #loeturia
 
