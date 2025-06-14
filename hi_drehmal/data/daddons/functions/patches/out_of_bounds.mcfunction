@@ -5,6 +5,7 @@ execute if score @s oob_warning matches 20 run tellraw @s [{"text":"YOU ARE OUT 
 execute if score @s oob_warning matches 40 run tellraw @s [{"text":"YOU ARE OUT OF BOUNDS! ","color":"dark_red","bold":true},{"text":"You have","color":"white","bold":false},{"text":" 1 ","color":"red"},{"text":"more second to go back in bounds before you are killed.","color":"white","bold":false}]
 execute unless score @s oob_warning matches 60.. run scoreboard players add @s oob_warning 1
 execute if score @s oob_warning matches 60.. run damage @s 8192 minecraft:idk
-execute if score @s oob_warning matches 60.. run function players:spawn/default_spawn
+# Default spawn
+execute if score @s oob_warning matches 60.. run spawnpoint @s 778 106 688
 execute if score @s oob_warning matches 60.. run scoreboard players set @s oob_murdered 1
 execute if score @s oob_warning matches 60.. run scoreboard players reset @s oob_warning
