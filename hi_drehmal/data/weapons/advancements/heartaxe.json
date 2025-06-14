@@ -28,7 +28,7 @@
         },
         "show_toast": true,
         "frame": "task",
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "title": {
             "color": "dark_purple",
             "text": "The Heartaxe"

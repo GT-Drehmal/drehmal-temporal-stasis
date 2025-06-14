@@ -9,7 +9,7 @@
             "color": "gray",
             "text": "Recipe for the Emperor Anyr's Scepter, the tool of the last emperor of Avsohm, unlocked."
         },
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "icon": {
             "item": "minecraft:vex_spawn_egg"
         },

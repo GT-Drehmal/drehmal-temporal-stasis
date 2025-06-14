@@ -20,7 +20,7 @@
     },
     "display": {
         "frame": "task",
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "icon": {
             "item": "minecraft:goat_spawn_egg"
         },
