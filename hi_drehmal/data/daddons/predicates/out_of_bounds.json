@@ -15,7 +15,10 @@
       "condition": "minecraft:entity_scores",
       "entity": "this",
       "scores": {
-        "oob_murdered": 1
+        "oob_murdered": {
+          "min": 1,
+          "max": 3
+        }
       }
     }
   },
