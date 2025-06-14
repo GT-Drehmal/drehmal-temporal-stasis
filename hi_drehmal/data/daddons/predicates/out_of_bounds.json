@@ -20,12 +20,14 @@
     }
   },
   {
-    "condition": "minecraft:entity_scores",
-    "entity": "this",
-    "scores": {
-      "oob_warning": {
-        "min": 0,
-        "max": 60
+    "condition": "minecraft:inverted",
+    "term": {
+      "condition": "minecraft:entity_scores",
+      "entity": "this",
+      "scores": {
+        "oob_warning": {
+          "min": 60
+        }
       }
     }
   },
