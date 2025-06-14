@@ -37,8 +37,8 @@ execute if score #1S timer matches 0 positioned -69 29 -1646 if entity @s[distan
 
 execute unless score #vol_church? bool matches 1 if entity @s[gamemode=!creative,gamemode=!spectator,x=365.0,y=82.0,z=971.0,dx=28,dz=19,dy=10] run function core:scene/vol_church/0
 
-execute unless score @s khive_pcool matches 1.. if entity @s[x=27391.0,y=125.0,z=53.0,dx=3,dy=5,dz=5,scores={rx=4500..13500,x2=..-25}] run function players:misc/core_portal2
-execute unless score @s khive_pcool matches 1.. if score #worldtime x matches 70..190 if entity @s[x=425,y=4,z=-834,dx=2,dy=5,dz=5,scores={rx=-13500..-4500,x2=25..}] if block 440 3 -825 diamond_block run function players:misc/core_portal1
+execute unless score @s khive_pcool matches 1.. if entity @s[x=27391.0,y=125.0,z=53.0,dx=3,dy=5,dz=5,scores={rx=4500..13500,x2=..-25},advancements={advancements:primordial/ring_facility=true,advancements:primordial/inscription_facility=true,advancements:primordial/resupply_depot=true}] run function players:misc/core_portal2
+execute unless score @s khive_pcool matches 1.. if score #worldtime x matches 70..190 if entity @s[x=425,y=4,z=-834,dx=2,dy=5,dz=5,scores={rx=-13500..-4500,x2=25..},advancements={advancements:primordial/ring_facility=true,advancements:primordial/inscription_facility=true,advancements:primordial/resupply_depot=true}] if block 440 3 -825 diamond_block run function players:misc/core_portal1
 
 execute unless score @s khive_pcool matches 1.. if entity @s[x=-924.5,y=32,z=-202,dx=0,dy=4,dz=4,scores={rx=-13500..-4500,x2=25..}] run function players:misc/ring_portal/underground_to
 execute unless score @s khive_pcool matches 1.. if entity @s[x=-916.5,y=10,z=-127,dx=1,dy=6,dz=6,scores={rx=4500..13500,x2=..-25}] run function players:misc/ring_portal/underground_from

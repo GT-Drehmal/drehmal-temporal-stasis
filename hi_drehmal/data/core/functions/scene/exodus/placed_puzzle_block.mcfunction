@@ -1,2 +1,2 @@
 advancement revoke @s only core:exodus/place_puzzle_block
-execute in minecraft:overworld if blocks -2592 36 2290 -2585 42 2290 -2592 36 2293 all unless score #exodusdoor timer matches 1.. run function core:scene/exodus/entranceopen
+execute if score count_all towers matches 16.. in minecraft:overworld if blocks -2592 36 2290 -2585 42 2290 -2592 36 2293 all unless score #exodusdoor timer matches 1.. run function core:scene/exodus/entranceopen
