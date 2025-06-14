@@ -203,3 +203,7 @@ execute if score #10terminus100 bool matches 1 unless score #clearancedialogue b
 
 function core:scene/lodahr_portals/main
 
+#================#
+# Drehmal Addons #
+#================#
+function daddons:main
