@@ -2,41 +2,6 @@
   {
     "condition": "minecraft:inverted",
     "term": {
-      "condition": "minecraft:entity_scores",
-      "entity": "this",
-      "scores": {
-        "isDev": 1
-      }
-    }
-  },
-  {
-    "condition": "minecraft:any_of",
-    "terms": [
-      {
-        "condition": "minecraft:entity_properties",
-        "entity": "this",
-        "predicate": {
-          "type_specific": {
-            "type": "minecraft:player",
-            "gamemode": "survival"
-          }
-        }
-      },
-      {
-        "condition": "minecraft:entity_properties",
-        "entity": "this",
-        "predicate": {
-          "type_specific": {
-            "type": "minecraft:player",
-            "gamemode": "adventure"
-          }
-        }
-      }
-    ]
-  },
-  {
-    "condition": "minecraft:inverted",
-    "term": {
       "condition": "minecraft:entity_properties",
       "entity": "this",
       "predicate": {
@@ -59,73 +24,5 @@
         }
       }
     }
-  },
-  {
-    "condition": "minecraft:any_of",
-    "terms": [
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/court_of_nothing"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/heatmap_place"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/in_terminus"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/in_yavhlix"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/ossein_arena"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/resonant_halls_entrance_stairs"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/resonant_halls_water"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/resonant_halls"
-        }
-      },
-      {
-        "condition": "minecraft:inverted",
-        "term": {
-          "condition": "minecraft:reference",
-          "name": "players:locations/spawn_room"
-        }
-      }
-    ]
   }
 ]
