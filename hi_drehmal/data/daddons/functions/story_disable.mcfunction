@@ -1,0 +1,1 @@
+scoreboard players set #story_disabled? bool 1

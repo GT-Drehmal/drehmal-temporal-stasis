@@ -191,6 +191,7 @@ scoreboard objectives add enrage.sun dummy
 scoreboard objectives add atk_speed dummy
 scoreboard objectives add atk_speed_old dummy
 scoreboard objectives add atk_charge dummy
+# Khive portal cooldown
 scoreboard objectives add khive_pcool dummy
 scoreboard objectives add foundry dummy
 scoreboard objectives add sam.id dummy
