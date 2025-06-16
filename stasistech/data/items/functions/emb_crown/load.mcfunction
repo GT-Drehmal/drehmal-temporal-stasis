@@ -1,0 +1,1 @@
+scoreboard objectives add embc_deaths deathCount
