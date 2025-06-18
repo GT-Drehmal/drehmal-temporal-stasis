@@ -18,7 +18,8 @@ execute if score #1S timer matches 0 if entity @s[advancements={primordial:heart
 execute if entity @s[x=778,y=107,z=690,distance=..10] if score @s playingMusic matches 600.. run scoreboard players set @s playingMusic 0
 execute unless score #daylight_on bool matches 1 if entity @s[x=778,y=107,z=690,distance=..10] store success score #daylight_on bool run gamerule doDaylightCycle true
 
-execute unless score #avsys_p2 bool matches 1 if score count_all towers matches 24.. if entity @s[tag=still] if predicate players:no_armor if entity @s[x=-243,y=52,z=1625,dx=2,dy=5,dz=2] run scoreboard players add @s avsys_p2 1
+## Forced progression: Only allow admin wing access if 25% and 50% events are completed and tower reaches 75%
+execute unless score #avsys_p2 bool matches 1 unless score #story_disabled? bool matches 1 if score count_all towers matches 24.. if score #salmeviradvancement bool matches 1 if score #7mbright bool matches 1 if entity @s[tag=still] if predicate players:no_armor if entity @s[x=-243,y=52,z=1625,dx=2,dy=5,dz=2] run scoreboard players add @s avsys_p2 1
 execute if score @s avsys_p2 matches 1.. run function players:misc/avsys_p2
 
 # foundry stuff
