@@ -1,0 +1,1 @@
+function items:emb_crown/tick
