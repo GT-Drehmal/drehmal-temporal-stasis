@@ -1,6 +1,7 @@
 {
     "replace": false,
     "values": [
-        "stasis:load"
+        "stasis:load",
+        "items:load"
     ]
 }

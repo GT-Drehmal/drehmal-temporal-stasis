@@ -1,2 +1,2 @@
-execute as @a[predicate=items:wearing_embered_crown] unless score @s embc_deaths matches 1.. run function items:emb_crown/set_on_fire
-execute as @a[predicate=items:wearing_embered_crown] if score @s embc_deaths matches 1.. run function items:emb_crown/return_to_inv
+execute as @a[predicate=items:wearing_embered_crown] run function items:emb_crown/player_tick
+execute at @a[predicate=items:wearing_embered_crown] as @e[type=minecraft:small_fireball,tag=embc_fire,distance=0..5] run function items:emb_crown/fireball_tick
