@@ -2,7 +2,7 @@
 
 [playerConfig.claims]
 bonusChunkForceloads = 0
-color = 14483701
+color = 16371200
 usedSub = "default"
 usedServerSub = "default"
 name = ""
@@ -14,34 +14,34 @@ netherPortalsPlayers = 0
 projectileHitHostileSpawn = 0
 pistonBarrier = false
 spawnersHostile = false
-entitiesFromPlayers = 2
+entitiesFromPlayers = 0
 netherPortalsMobs = 0
-itemPickupPlayers = 2
+itemPickupPlayers = 0
 playersFromMobs = false
 fromAllyParties = false
-entitiesRedirect = true
+entitiesRedirect = false
 neighborChunksItemUse = false
 itemPickupMobs = 0
 tripwireFromOther = 0
-entitiesFromExplosions = true
+entitiesFromExplosions = false
 itemTossRedirect = false
-playerLightning = 2
+playerLightning = 0
 entitiesFromMobs = 0
 playersFromPlayers = false
 platesFromOther = 0
-blocksFromOther = 2
+blocksFromOther = 0
 dispenserBarrier = false
 entitiesFromOther = 0
 netherPortalsOther = 0
 naturalSpawnHostile = false
 fromParty = false
-blocksRedirect = true
+blocksRedirect = false
 projectileHitFriendlySpawn = 0
 mobLoot = 0
 overrideMobGriefingRule = false
 fluidBarrier = false
 tripwireFromPlayers = 0
-cropTrample = true
+cropTrample = false
 blocksFromExplosions = false
 playersFromOther = false
 tripwireFromMobs = 0
@@ -51,13 +51,13 @@ xpPickup = 0
 itemUse = 0
 spawnersFriendly = false
 platesFromPlayers = 0
-entitiesFromFire = true
+entitiesFromFire = false
 raids = false
 itemPickupRedirect = false
-blocksFromMobs = 2
-playersRedirect = true
+blocksFromMobs = 0
+playersRedirect = false
 targetsFromProjectiles = 0
-blocksFromPlayers = 2
+blocksFromPlayers = 0
 itemTossPlayers = 0
 platesFromMobs = 0
 fromFrostWalking = 0
@@ -65,33 +65,44 @@ itemTossMobs = 0
 itemTossOther = 0
 playerDeathLoot = 0
 naturalSpawnFriendly = false
-fromFireSpread = true
+fromFireSpread = false
 
-[playerConfig.claims.protection.exceptionGroups]
+			[playerConfig.claims.protection.exceptionGroups]
 
-[playerConfig.claims.protection.exceptionGroups.block]
+				[playerConfig.claims.protection.exceptionGroups.block]
 
-[playerConfig.claims.protection.exceptionGroups.block.break]
-Crops = 0
+					[playerConfig.claims.protection.exceptionGroups.block.break]
+						Everything = 3
+						Crops = 3
 
-[playerConfig.claims.protection.exceptionGroups.block.interact]
-Containers = 0
+					[playerConfig.claims.protection.exceptionGroups.block.anyItemInteract]
+						Everything = 3
 
-[playerConfig.claims.protection.exceptionGroups.entity]
+					[playerConfig.claims.protection.exceptionGroups.block.interact]
+						Redstone_Components = 3
+						Containers = 3
+						Anvil = 3
 
-[playerConfig.claims.protection.exceptionGroups.entity.anyItemInteract]
-Villagers = 0
+				[playerConfig.claims.protection.exceptionGroups.entity]
 
-[playerConfig.claims.protection.exceptionGroups.entity.entityAccess]
-Zombies = 0
+					[playerConfig.claims.protection.exceptionGroups.entity.anyItemInteract]
+						Armor_Stand = 3
+						Item_Frames = 3
 
-[playerConfig.claims.forceload]
-offlineForceload = false
-enabled = false
+					[playerConfig.claims.protection.exceptionGroups.entity.interact]
+						Villager = 3
 
-[playerConfig.parties]
-shareLocationWithParty = true
-shareLocationWithMutualAllyParties = true
-name = ""
-receiveLocationsFromMutualAllyParties = true
-receiveLocationsFromParty = true
+					[playerConfig.claims.protection.exceptionGroups.entity.entityAccess]
+						Zombies = 3
+
+		[playerConfig.claims.forceload]
+			offlineForceload = false
+			enabled = false
+
+	[playerConfig.parties]
+		shareLocationWithParty = false
+		shareLocationWithMutualAllyParties = false
+		name = "DISABLED"
+		receiveLocationsFromMutualAllyParties = false
+		receiveLocationsFromParty = false
+
