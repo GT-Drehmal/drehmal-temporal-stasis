@@ -1,0 +1,13 @@
+Bug Trophy
+
+Entropy's uncertainty permeates Drehmal and beyond,
+with only a few transcendent alchemists able to identify
+critical breach points. To these rare masters,
+Life-Bringer Vayniklah grants this sacred
+token of recognition.
+
+When in Off Hand:
++1 Luck
+
+Special
+Ferno9044 | Terminus Out-of-Bounds Bug

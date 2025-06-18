@@ -1,0 +1,27 @@
+Embered Crown
+
+A burning golden crown wrought by royal smiths
+in the reign of Maelihs, bestowed only upon the most
+devoted and bloodthirsty Maelmari warriors. Writhing glyphs
+are inscribed where the metal glows ember-bright,
+imbuing the bearer with chaotic strength,
+yet cursing them to rue their ambition through life-long anguish.
+
+Burning Remorse
+???
+(
+The Burnt Sapling mirrors its hate upon you.
+Bearing this crown will set you aflame and
+gives you Regeneration.
+The crown cannot be removed except on death.
+)
+
+When on Head:
+-48% Fire Damage
+-90% Burn Time
++4 Armor
++1 Armor Toughness
+Unbreakable
+
+Special
+
