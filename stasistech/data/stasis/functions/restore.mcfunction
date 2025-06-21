@@ -269,4 +269,6 @@ scoreboard players reset #fzy_picked? bool
 
 scoreboard players reset #b.passive_alive? bool
 
+function stasis:holotext_restore
+
 say [Temporal Stasis] Rollback complete.
