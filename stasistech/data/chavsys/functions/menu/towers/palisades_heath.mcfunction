@@ -1,0 +1,3 @@
+execute if score palisades_heath towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＰＡＬＩＳＡＤＥＳ　ＨＥＡＴＨ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_palisades_heath"}},{"text":"]","color":"white"}]
+execute unless score palisades_heath towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＰＡＬＩＳＡＤＥＳ　ＨＥＡＴＨ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
+tellraw @s ""

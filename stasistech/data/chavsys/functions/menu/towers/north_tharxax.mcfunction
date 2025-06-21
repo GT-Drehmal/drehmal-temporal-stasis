@@ -1,0 +1,3 @@
+execute if score north_tharxax towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＮＯＲＴＨ　ＴＨＡＲＸＡＸ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_north_tharxax"}},{"text":"]","color":"white"}]
+execute unless score north_tharxax towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＮＯＲＴＨ　ＴＨＡＲＸＡＸ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
+tellraw @s ""

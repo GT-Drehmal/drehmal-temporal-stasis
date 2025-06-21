@@ -2,6 +2,7 @@
     "replace": false,
     "values": [
         "stasis:tick",
-        "items:tick"
+        "items:tick",
+        "chavsys:tick"
     ]
 }

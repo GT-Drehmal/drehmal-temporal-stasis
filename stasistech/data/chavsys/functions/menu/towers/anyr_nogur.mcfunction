@@ -1,0 +1,3 @@
+execute if score anyr_nogur towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＡＮＹＲ＇ＮＯＧＵＲ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_anyr_nogur"}},{"text":"]","color":"white"}]
+execute unless score anyr_nogur towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＡＮＹＲ＇ＮＯＧＵＲ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
+tellraw @s ""

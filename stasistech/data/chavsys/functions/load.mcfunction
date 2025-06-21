@@ -1,0 +1,42 @@
+scoreboard objectives add chavsys_tp_window dummy
+
+scoreboard objectives add chavsys_akhlo_rohma trigger
+scoreboard objectives add chavsys_anyr_nogur trigger
+scoreboard objectives add chavsys_aphelion trigger
+scoreboard objectives add chavsys_av_sal trigger
+scoreboard objectives add chavsys_black_jungle trigger
+scoreboard objectives add chavsys_capital_valley trigger
+scoreboard objectives add chavsys_carmine trigger
+scoreboard objectives add chavsys_casai trigger
+scoreboard objectives add chavsys_dawn_island trigger
+scoreboard objectives add chavsys_dusk_island trigger
+scoreboard objectives add chavsys_ebonfire trigger
+scoreboard objectives add chavsys_ebony_veldt trigger
+scoreboard objectives add chavsys_faehrcyle trigger
+scoreboard objectives add chavsys_frozen_bite trigger
+scoreboard objectives add chavsys_grand_pike_canyon trigger
+scoreboard objectives add chavsys_gulf_of_drehmal trigger
+scoreboard objectives add chavsys_heartwood trigger
+scoreboard objectives add chavsys_hellcrags trigger
+scoreboard objectives add chavsys_highfall_tundra trigger
+scoreboard objectives add chavsys_lo_dahr trigger
+scoreboard objectives add chavsys_lorahn_kahl trigger
+scoreboard objectives add chavsys_maels_desolation trigger
+scoreboard objectives add chavsys_merijool trigger
+scoreboard objectives add chavsys_nimahj_swamp trigger
+scoreboard objectives add chavsys_north_tharxax trigger
+scoreboard objectives add chavsys_palisades_heath trigger
+scoreboard objectives add chavsys_purity_peaks trigger
+scoreboard objectives add chavsys_sahd trigger
+scoreboard objectives add chavsys_south_tharxax trigger
+scoreboard objectives add chavsys_spearhead_forest trigger
+scoreboard objectives add chavsys_veruhkt_plateau trigger
+scoreboard objectives add chavsys_yavhlix trigger
+
+scoreboard objectives add chavsys_menu trigger
+scoreboard objectives add chavsys_central_towers trigger
+scoreboard objectives add chavsys_east_towers trigger
+scoreboard objectives add chavsys_west_towers trigger
+scoreboard objectives add chavsys_outer_towers trigger
+
+execute as @a run function chavsys:triggers/enable

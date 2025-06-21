@@ -1,0 +1,3 @@
+execute if score akhlo_rohma towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＡＫＨＬＯ＇ＲＯＨＭＡ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_akhlo_rohma"}},{"text":"]","color":"white"}]
+execute unless score akhlo_rohma towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＡＫＨＬＯ＇ＲＯＨＭＡ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
+tellraw @s ""

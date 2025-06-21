@@ -1,0 +1,19 @@
+scoreboard players operation #outer_plus_island temp = count_island towers
+scoreboard players operation #outer_plus_island temp += count_outer towers
+
+tellraw @s [{"text":"= ＋ = ＋ = ＋ =","color":"dark_aqua","bold":false},{"text":" ａｖＳＹＳ ＣＬＩ ","color":"aqua","bold":true},{"text":"= ＋ = ＋ = ＋ =","color":"dark_aqua","bold":false}]
+tellraw @s ""
+
+execute if score #terminusoff bool matches 1 run tellraw @s {"text":"[ERROR] No Power","italic":true,"color":"dark_red"}
+execute unless score #terminusoff bool matches 1 if score count_central towers matches 1.. run tellraw @s [{"text": "  "},{"text": "● ","color": "green"},{"text": "[","color": "white", "underlined": false},{"text": "ＣＥＮＴＲＡＬ　ＴＯＷＥＲＳ", "color": "green", "underlined": true, "hoverEvent": {"action": "show_text","contents": {"text": "Show options"}},"clickEvent": {"action": "run_command","value": "/trigger chavsys_central_towers"}},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 unless score count_central towers matches 1.. run tellraw @s [{"text": "  "},{"text": "○ ","color": "dark_green"},{"text": "[","color": "white", "strikethrough": false},{"text": "ＣＥＮＴＲＡＬ　ＴＯＷＥＲＳ", "color": "dark_green", "strikethrough": true},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 run tellraw @s ""
+execute unless score #terminusoff bool matches 1 if score count_east towers matches 1.. run tellraw @s [{"text": "  "},{"text": "● ","color": "blue"},{"text": "[","color": "white", "underlined": false},{"text": "ＥＡＳＴＥＲＮ　ＴＯＷＥＲＳ", "color": "blue", "underlined": true, "hoverEvent": {"action": "show_text","contents": {"text": "Show options"}},"clickEvent": {"action": "run_command","value": "/trigger chavsys_east_towers"}},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 unless score count_east towers matches 1.. run tellraw @s [{"text": "  "},{"text": "○ ","color": "dark_blue"},{"text": "[","color": "white", "strikethrough": false},{"text": "ＥＡＳＴＥＲＮ　ＴＯＷＥＲＳ", "color": "dark_blue", "strikethrough": true},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 run tellraw @s ""
+execute unless score #terminusoff bool matches 1 if score count_west towers matches 1.. run tellraw @s [{"text": "  "},{"text": "● ","color": "red"},{"text": "[","color": "white", "underlined": false},{"text": "ＷＥＳＴＥＲＮ　ＴＯＷＥＲＳ", "color": "red", "underlined": true, "hoverEvent": {"action": "show_text","contents": {"text": "Show options"}},"clickEvent": {"action": "run_command","value": "/trigger chavsys_west_towers"}},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 unless score count_west towers matches 1.. run tellraw @s [{"text": "  "},{"text": "○ ","color": "dark_red"},{"text": "[","color": "white", "strikethrough": false},{"text": "ＷＥＳＴＥＲＮ　ＴＯＷＥＲＳ", "color": "dark_red", "strikethrough": true},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 run tellraw @s ""
+execute unless score #terminusoff bool matches 1 if score #outer_plus_island temp matches 1.. run tellraw @s [{"text": "  "},{"text": "● ","color": "yellow"},{"text": "[","color": "white", "underlined": false},{"text": "ＯＵＴＥＲ　ＴＯＷＥＲＳ", "color": "yellow", "underlined": true, "hoverEvent": {"action": "show_text","contents": {"text": "Show options"}},"clickEvent": {"action": "run_command","value": "/trigger chavsys_outer_towers"}},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 unless score #outer_plus_island temp matches 1.. run tellraw @s [{"text": "  "},{"text": "○ ","color": "dark_gray"},{"text": "[","color": "white", "strikethrough": false},{"text": "ＯＵＴＥＲ　ＴＯＷＥＲＳ", "color": "dark_gray", "strikethrough": true},{"text": "]", "color": "white"}]
+execute unless score #terminusoff bool matches 1 run tellraw @s ""

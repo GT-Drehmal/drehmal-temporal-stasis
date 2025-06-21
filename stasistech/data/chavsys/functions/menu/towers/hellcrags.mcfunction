@@ -1,0 +1,3 @@
+execute if score hellcrags towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＨＥＬＬＣＲＡＧＳ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_hellcrags"}},{"text":"]","color":"white"}]
+execute unless score hellcrags towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＨＥＬＬＣＲＡＧＳ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
+tellraw @s ""

@@ -1,0 +1,3 @@
+execute if score dusk_island towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＩＳＬＡＮＤ　ＯＦ　ＤＵＳＫ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_dusk_island"}},{"text":"]","color":"white"}]
+execute unless score dusk_island towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＩＳＬＡＮＤ　ＯＦ　ＤＵＳＫ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
+tellraw @s ""

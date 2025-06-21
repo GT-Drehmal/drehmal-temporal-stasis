@@ -1,0 +1,1 @@
+execute as @a if score @s chavsys_tp_window matches 1.. run scoreboard players remove @s chavsys_tp_window 1
