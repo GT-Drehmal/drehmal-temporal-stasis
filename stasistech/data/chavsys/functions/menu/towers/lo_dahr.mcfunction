@@ -1,3 +1,2 @@
-execute if score lo_dahr towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＬＯ＇ＤＡＨＲ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_lo_dahr"}},{"text":"]","color":"white"}]
-execute unless score lo_dahr towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＬＯ＇ＤＡＨＲ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
-tellraw @s ""
+execute if score lo_dahr towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"yellow"},{"text":"  ","color":"white","underlined":false},{"text":"ＬＯ＇ＤＡＨＲ","color":"yellow","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_lo_dahr"}}]
+execute if score lo_dahr towers matches 1 run tellraw @s ""

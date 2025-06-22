@@ -31,3 +31,7 @@ scoreboard players reset @s chavsys_spearhead_forest
 scoreboard players reset @s chavsys_veruhkt_plateau
 scoreboard players reset @s chavsys_yavhlix
 scoreboard players reset @s chavsys_menu
+scoreboard players reset @s chavsys_central_towers
+scoreboard players reset @s chavsys_east_towers
+scoreboard players reset @s chavsys_west_towers
+scoreboard players reset @s chavsys_outer_towers

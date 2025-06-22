@@ -1,5 +1,3 @@
-scoreboard objectives add chavsys_tp_window dummy
-
 scoreboard objectives add chavsys_akhlo_rohma trigger
 scoreboard objectives add chavsys_anyr_nogur trigger
 scoreboard objectives add chavsys_aphelion trigger
@@ -38,5 +36,3 @@ scoreboard objectives add chavsys_central_towers trigger
 scoreboard objectives add chavsys_east_towers trigger
 scoreboard objectives add chavsys_west_towers trigger
 scoreboard objectives add chavsys_outer_towers trigger
-
-execute as @a run function chavsys:triggers/enable

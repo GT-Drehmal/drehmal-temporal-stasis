@@ -1,4 +1,5 @@
-tellraw @s [{"text":"= ＋ = ＋ = ＋ =","color":"red","bold":false},{"text":" ＷＥＳＴＥＲＮ　ＴＯＷＥＲＳ ","color":"white","bold":true},{"text":"= ＋ = ＋ = ＋ ="}]
+tellraw @s ""
+tellraw @s [{"text":"= ＋ = ＋ = ＋ =","color":"white","bold":false},{"text":" ＷＥＳＴＥＲＮ　ＴＯＷＥＲＳ ","color":"red","bold":true},{"text":"= ＋ = ＋ = ＋ ="}]
 # tellraw @s {"text": "          Western Towers", "color": "red", "underlined": true}
 tellraw @s ""
 
@@ -13,3 +14,6 @@ function chavsys:menu/towers/nimahj_swamp
 function chavsys:menu/towers/north_tharxax
 function chavsys:menu/towers/south_tharxax
 function chavsys:menu/towers/hellcrags
+
+tellraw @s [{"text":"[","color":"white","underlined":false},{"text":"ＢＡＣＫ","color":"dark_aqua","underlined":true,"hoverEvent":{"action":"show_text","contents":{"text":"Return to menu"}},"clickEvent":{"action":"run_command","value":"/trigger chavsys_menu"}},{"text":"]"}]
+tellraw @s ""

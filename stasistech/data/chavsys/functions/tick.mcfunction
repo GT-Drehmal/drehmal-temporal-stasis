@@ -1,1 +1,7 @@
-execute as @a if score @s chavsys_tp_window matches 1.. run scoreboard players remove @s chavsys_tp_window 1
+# execute as @a if predicate players:locations/in_terminus run function chavsys:triggers/check_triggers
+# execute as @a run function chavsys:triggers/reset_all
+# execute as @a if predicate players:locations/in_terminus run function chavsys:triggers/enable
+# Test logic
+execute as @a run function chavsys:triggers/check_triggers
+execute as @a run function chavsys:triggers/reset_all
+execute as @a run function chavsys:triggers/enable

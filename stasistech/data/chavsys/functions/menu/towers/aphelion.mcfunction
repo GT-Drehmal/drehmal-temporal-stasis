@@ -1,3 +1,2 @@
-execute if score aphelion towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"blue"},{"text":" [","color":"white","underlined":false},{"text":"ＡＰＨＥＬＩＯＮ","color":"blue","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_aphelion"}},{"text":"]","color":"white"}]
-execute unless score aphelion towers matches 1 run tellraw @s [{"text":"  "},{"text":"○","color":"dark_blue"},{"text":" [","color":"white","strikethrough":false},{"text":"ＡＰＨＥＬＩＯＮ","color":"dark_blue","strikethrough":true},{"text":"]","color":"white"}]
-tellraw @s ""
+execute if score aphelion towers matches 1 run tellraw @s [{"text":"  "},{"text":"●","color":"yellow"},{"text":"  ","color":"white","underlined":false},{"text":"ＡＰＨＥＬＩＯＮ","color":"yellow","underlined":true,"hoverEvent":{"action":"show_text","value":[{"text":"Click to teleport"}]},"clickEvent":{"action":"run_command","value":"/trigger chavsys_aphelion"}}]
+execute if score aphelion towers matches 1 run tellraw @s ""
