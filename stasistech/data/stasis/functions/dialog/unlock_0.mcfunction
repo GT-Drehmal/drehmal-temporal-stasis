@@ -1,3 +1,4 @@
+function stasis:enable_triggers
 function stasis:playsound/runic_energy
 tellraw @s {"text":"A wave of runic energy rushes over you...","color":"light_purple","italic":true}
 tag @s add sts_initial_hourglass_dialog
