@@ -4,7 +4,7 @@
         "icon": {
             "item": "minecraft:bat_spawn_egg"
         },
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "description": {
             "text": "Recipe for Masayoshi, the deceased Tide Queen’s ancient blade, unlocked.",
             "color": "gray"

@@ -19,7 +19,7 @@
     },
     "display": {
         "frame": "task",
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "icon": {
             "item": "minecraft:rabbit_spawn_egg"
         },

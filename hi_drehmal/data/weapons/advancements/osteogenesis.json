@@ -28,7 +28,7 @@
         "icon": {
             "item": "minecraft:endermite_spawn_egg"
         },
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "title": {
             "text": "Osteogenesis",
             "color": "dark_purple"

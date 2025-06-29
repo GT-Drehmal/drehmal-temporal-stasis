@@ -14,7 +14,7 @@
             "item": "minecraft:parrot_spawn_egg"
         },
         "hidden": true,
-        "announce_to_chat": true,
+        "announce_to_chat": false,
         "frame": "task",
         "title": {
             "color": "dark_purple",

@@ -13,7 +13,7 @@
     },
     "frame": "challenge",
     "show_toast": true,
-    "announce_to_chat": true,
+    "announce_to_chat": false,
     "hidden": true
   },
   "rewards": {
