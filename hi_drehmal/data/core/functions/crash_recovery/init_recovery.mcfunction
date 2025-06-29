@@ -226,6 +226,54 @@ execute as @a[tag=13] as @s run execute store result score @s horseOwnerID run d
 execute as @a[tag=14] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 14 1
 execute as @a[tag=15] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 15 1
 execute as @a[tag=16] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 16 1
+execute as @a[tag=17] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 17 1
+execute as @a[tag=18] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 18 1
+execute as @a[tag=19] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 19 1
+execute as @a[tag=20] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 20 1
+execute as @a[tag=21] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 21 1
+execute as @a[tag=22] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 22 1
+execute as @a[tag=23] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 23 1
+execute as @a[tag=24] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 24 1
+execute as @a[tag=25] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 25 1
+execute as @a[tag=26] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 26 1
+execute as @a[tag=27] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 27 1
+execute as @a[tag=28] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 28 1
+execute as @a[tag=29] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 29 1
+execute as @a[tag=30] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 30 1
+execute as @a[tag=31] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 31 1
+execute as @a[tag=32] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 32 1
+execute as @a[tag=33] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 33 1
+execute as @a[tag=34] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 34 1
+execute as @a[tag=35] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 35 1
+execute as @a[tag=36] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 36 1
+execute as @a[tag=37] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 37 1
+execute as @a[tag=38] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 38 1
+execute as @a[tag=39] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 39 1
+execute as @a[tag=40] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 40 1
+execute as @a[tag=41] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 41 1
+execute as @a[tag=42] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 42 1
+execute as @a[tag=43] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 43 1
+execute as @a[tag=44] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 44 1
+execute as @a[tag=45] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 45 1
+execute as @a[tag=46] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 46 1
+execute as @a[tag=47] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 47 1
+execute as @a[tag=48] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 48 1
+execute as @a[tag=49] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 49 1
+execute as @a[tag=50] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 50 1
+execute as @a[tag=51] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 51 1
+execute as @a[tag=52] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 52 1
+execute as @a[tag=53] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 53 1
+execute as @a[tag=54] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 54 1
+execute as @a[tag=55] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 55 1
+execute as @a[tag=56] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 56 1
+execute as @a[tag=57] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 57 1
+execute as @a[tag=58] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 58 1
+execute as @a[tag=59] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 59 1
+execute as @a[tag=60] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 60 1
+execute as @a[tag=61] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 61 1
+execute as @a[tag=62] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 62 1
+execute as @a[tag=63] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 63 1
+execute as @a[tag=64] as @s run execute store result score @s horseOwnerID run data get storage minecraft:warphorse 64 1
 
 execute if block 26518 167 -88 white_concrete run scoreboard players set #numberp num 1
 execute if block 26518 167 -88 light_gray_concrete run scoreboard players set #numberp num 2
@@ -243,5 +291,53 @@ execute if block 26518 167 -88 blue_concrete run scoreboard players set #numberp
 execute if block 26518 167 -88 purple_concrete run scoreboard players set #numberp num 14
 execute if block 26518 167 -88 magenta_concrete run scoreboard players set #numberp num 15
 execute if block 26518 167 -88 pink_concrete run scoreboard players set #numberp num 16
+execute if block 26518 167 -88 white_wool run scoreboard players set #numberp num 17
+execute if block 26518 167 -88 light_gray_wool run scoreboard players set #numberp num 18
+execute if block 26518 167 -88 gray_wool run scoreboard players set #numberp num 19
+execute if block 26518 167 -88 black_wool run scoreboard players set #numberp num 20
+execute if block 26518 167 -88 brown_wool run scoreboard players set #numberp num 21
+execute if block 26518 167 -88 red_wool run scoreboard players set #numberp num 22
+execute if block 26518 167 -88 orange_wool run scoreboard players set #numberp num 23
+execute if block 26518 167 -88 yellow_wool run scoreboard players set #numberp num 24
+execute if block 26518 167 -88 lime_wool run scoreboard players set #numberp num 25
+execute if block 26518 167 -88 green_wool run scoreboard players set #numberp num 26
+execute if block 26518 167 -88 cyan_wool run scoreboard players set #numberp num 27
+execute if block 26518 167 -88 light_blue_wool run scoreboard players set #numberp num 28
+execute if block 26518 167 -88 blue_wool run scoreboard players set #numberp num 29
+execute if block 26518 167 -88 purple_wool run scoreboard players set #numberp num 30
+execute if block 26518 167 -88 magenta_wool run scoreboard players set #numberp num 31
+execute if block 26518 167 -88 pink_wool run scoreboard players set #numberp num 32
+execute if block 26518 167 -88 white_terracotta run scoreboard players set #numberp num 33
+execute if block 26518 167 -88 light_gray_terracotta run scoreboard players set #numberp num 34
+execute if block 26518 167 -88 gray_terracotta run scoreboard players set #numberp num 35
+execute if block 26518 167 -88 black_terracotta run scoreboard players set #numberp num 36
+execute if block 26518 167 -88 brown_terracotta run scoreboard players set #numberp num 37
+execute if block 26518 167 -88 red_terracotta run scoreboard players set #numberp num 38
+execute if block 26518 167 -88 orange_terracotta run scoreboard players set #numberp num 39
+execute if block 26518 167 -88 yellow_terracotta run scoreboard players set #numberp num 40
+execute if block 26518 167 -88 lime_terracotta run scoreboard players set #numberp num 41
+execute if block 26518 167 -88 green_terracotta run scoreboard players set #numberp num 42
+execute if block 26518 167 -88 cyan_terracotta run scoreboard players set #numberp num 43
+execute if block 26518 167 -88 light_blue_terracotta run scoreboard players set #numberp num 44
+execute if block 26518 167 -88 blue_terracotta run scoreboard players set #numberp num 45
+execute if block 26518 167 -88 purple_terracotta run scoreboard players set #numberp num 46
+execute if block 26518 167 -88 magenta_terracotta run scoreboard players set #numberp num 47
+execute if block 26518 167 -88 pink_terracotta run scoreboard players set #numberp num 48
+execute if block 26518 167 -88 white_stained_glass run scoreboard players set #numberp num 49
+execute if block 26518 167 -88 light_gray_stained_glass run scoreboard players set #numberp num 50
+execute if block 26518 167 -88 gray_stained_glass run scoreboard players set #numberp num 51
+execute if block 26518 167 -88 black_stained_glass run scoreboard players set #numberp num 52
+execute if block 26518 167 -88 brown_stained_glass run scoreboard players set #numberp num 53
+execute if block 26518 167 -88 red_stained_glass run scoreboard players set #numberp num 54
+execute if block 26518 167 -88 orange_stained_glass run scoreboard players set #numberp num 55
+execute if block 26518 167 -88 yellow_stained_glass run scoreboard players set #numberp num 56
+execute if block 26518 167 -88 lime_stained_glass run scoreboard players set #numberp num 57
+execute if block 26518 167 -88 green_stained_glass run scoreboard players set #numberp num 58
+execute if block 26518 167 -88 cyan_stained_glass run scoreboard players set #numberp num 59
+execute if block 26518 167 -88 light_blue_stained_glass run scoreboard players set #numberp num 60
+execute if block 26518 167 -88 blue_stained_glass run scoreboard players set #numberp num 61
+execute if block 26518 167 -88 purple_stained_glass run scoreboard players set #numberp num 62
+execute if block 26518 167 -88 magenta_stained_glass run scoreboard players set #numberp num 63
+execute if block 26518 167 -88 pink_stained_glass run scoreboard players set #numberp num 64
 
 execute if block 26516 167 -88 green_concrete run scoreboard players set #ring_facility bool 1
