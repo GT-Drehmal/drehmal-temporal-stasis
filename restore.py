@@ -13,6 +13,93 @@ from anvil.errors import ChunkNotFound
 
 LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 
+def main(args):
+    global parsed_args, logger, log_path  # ugly; artifacts from isolating main code from if __name__ section
+    
+    # Set up argument parser
+    parser = argparse.ArgumentParser(
+        description='''Another strike of the clock, another iteration of the world, Drehmal rewinds, under the whims of the Mythoclast...
+
+example:
+    python restore.py --exclude claims -b -12 -11 14 15 -v -p ".minecraft/saves/ogDrehmal" ".minecraft/saves/actDrehmal"''',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "original", help='path to original state/world directory. Must contain a "region" and an "entities" folder.'
+    )
+    parser.add_argument("active", help='path to active world directory. Must contain a "region" and an "entities" folder.')
+    parser.add_argument(
+        "-e",
+        "--exclude",
+        nargs="*",
+        type=str,
+        choices=["claims"],
+        default=[],
+        help="indicate what features to exclude from restoration. Currently only supports claims.",
+    )
+    parser.add_argument(
+        "-b",
+        "--boundary",
+        nargs=4,
+        type=int,
+        metavar=("minX", "minY", "maxX", "maxY"),
+        help="a drawn boundary box. Regions outside the box are not restored, only those within. Expects REGIONAL coordinates.",
+    )
+    parser.add_argument("-p", "--preview", action="store_true", help="preview changes without saving.")
+
+    display_g = parser.add_argument_group("display options")
+    display_g.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="add some extra print messages to see active progress. Will affect file output (i.e. --log/--logf).",
+    )
+    display_g.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="mute all log output and only display a progress bar. Error messages will still be shown. Does not affect file output (i.e. --log/--logf).",
+    )
+    display_g.add_argument(
+        "--no-pbar",
+        dest="nopbar",
+        action="store_true",
+        help="disable the progress bar. Can be helpful when piping output into a log file.",
+    )
+
+    log_options_g = parser.add_argument_group("log options")
+    log_options_mutx_g = log_options_g.add_mutually_exclusive_group()
+    log_options_mutx_g.add_argument(
+        "--log",
+        type=str,
+        default="",
+        help="also create a copy of the log (excluding the progress bar) in the specified log file.",
+    )
+    log_options_mutx_g.add_argument(
+        "--logf", type=str, default="", help="same as --log, but automatically creates missing directories."
+    )
+
+    parsed_args = parser.parse_args(args)
+
+    log_path = parsed_args.log if parsed_args.log else parsed_args.logf
+    if log_path:
+        if not os.path.exists(os.path.dirname(log_path)):
+            if parsed_args.logf or input("One or more log file directories missing. Create missing dirs? (y/N)").lower() != "y":
+                print("Aborting.")
+                sys.exit(1)
+            os.makedirs(os.path.dirname(log_path))
+
+    # Set up root logger & global logger ('restore')
+    # Functions may override this with their own logger instance.
+    logger = logger_init()
+    Chunk.logger_init()
+
+    logger.debug(f"""Arguments: {parsed_args}""")
+
+    # Call main function
+    ret_code = restore_dimension()
+    # Cleanup
+    sys.exit(ret_code)
 
 # see args at bottom of script
 def restore_dimension() -> int:
@@ -146,7 +233,7 @@ def restore_region(
         region_file (str): Name of the region file to parse. This will be used to find the file across original and active region and entities directories.
 
     Returns:
-        int: Status code. If not 0, an error has occurred.
+        int: Status code. If 0, region has been restored successfully. If 1, region has been skipped (not restored). If <0, an error has occurred.
     """
     logger = logger_init(f"restore.region.{idx}")
     with logging_redirect_tqdm(loggers=[logger], tqdm_class=auto_tqdm):
@@ -156,17 +243,17 @@ def restore_region(
         active_entities_path = os.path.join(active_entities_dir, region_file)
 
         if not os.path.exists(original_region_path):
-            logger.info(f"Region {region_file} does not exist in original world, skipping.")
+            logger.debug(f"Region {region_file} does not exist in original world, skipping.")
             return 1
         elif os.path.getsize(original_region_path) == 0:
-            logger.info(f"Skipping empty region file {region_file}.")
+            logger.debug(f"Skipping empty region file {region_file}.")
             return 1
         elif not region_modified(original_region_path, active_region_path):
-            logger.info(f"Skipping unmodified region file {region_file}.")
+            logger.debug(f"Skipping unmodified region file {region_file}.")
             return 1
 
         if not os.path.exists(original_entities_path) or os.path.getsize(original_entities_path) == 0:
-            logger.info(f"Entity region {region_file} does not exist in original world, skipping.")
+            logger.debug(f"Entity region {region_file} does not exist in original world, skipping.")
             restore_entities = False
         else:
             restore_entities = True
@@ -176,7 +263,7 @@ def restore_region(
         if parsed_args.boundary:
             min_x, min_z, max_x, max_z = map(int, parsed_args.boundary)
             if not (min_x <= regional_x <= max_x and min_z <= regional_z <= max_z):
-                logger.info(
+                logger.debug(
                     f"Region ({regional_x}, {regional_z}) not within allowed boundary ({min_x}, {min_z}) - ({max_x}, {max_z}), skipping."
                 )
                 return 1
@@ -590,98 +677,4 @@ anvil.Chunk = Chunk
 
 # cli org
 if __name__ == "__main__":
-    # Set up argument parser
-    parser = argparse.ArgumentParser(
-        description='''Another strike of the clock, another iteration of the world, Drehmal rewinds, under the whims of the Mythoclast...
-
-example:
-    python restore.py --exclude claims -b -12 -11 14 15 -v -p ".minecraft/saves/ogDrehmal" ".minecraft/saves/actDrehmal"''',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "original", help='path to original state/world directory. Must contain a "region" and an "entities" folder.'
-    )
-    parser.add_argument("active", help='path to active world directory. Must contain a "region" and an "entities" folder.')
-    parser.add_argument(
-        "-e",
-        "--exclude",
-        nargs="*",
-        type=str,
-        choices=["claims"],
-        default=[],
-        help="indicate what features to exclude from restoration. Currently only supports claims.",
-    )
-    parser.add_argument(
-        "-b",
-        "--boundary",
-        nargs=4,
-        type=int,
-        metavar=("minX", "minY", "maxX", "maxY"),
-        help="a drawn boundary box. Regions outside the box are not restored, only those within. Expects REGIONAL coordinates.",
-    )
-    parser.add_argument("-p", "--preview", action="store_true", help="preview changes without saving.")
-
-    display_g = parser.add_argument_group("display options")
-    display_g.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="add some extra print messages to see active progress. Will affect file output (i.e. --log/--logf).",
-    )
-    display_g.add_argument(
-        "-q",
-        "--quiet",
-        action="store_true",
-        help="mute all log output and only display a progress bar. Error messages will still be shown. Does not affect file output (i.e. --log/--logf).",
-    )
-    display_g.add_argument(
-        "--no-pbar",
-        dest="nopbar",
-        action="store_true",
-        help="disable the progress bar. Can be helpful when piping output into a log file.",
-    )
-
-    log_options_g = parser.add_argument_group("log options")
-    log_options_mutx_g = log_options_g.add_mutually_exclusive_group()
-    log_options_mutx_g.add_argument(
-        "--log",
-        type=str,
-        default="",
-        help="also create a copy of the log (excluding the progress bar) in the specified log file.",
-    )
-    log_options_mutx_g.add_argument(
-        "--logf", type=str, default="", help="same as --log, but automatically creates missing directories."
-    )
-
-    parsed_args = parser.parse_args()
-
-    log_path = parsed_args.log if parsed_args.log else parsed_args.logf
-    if log_path:
-        if not os.path.exists(os.path.dirname(log_path)):
-            if parsed_args.logf or input("One or more log file directories missing. Create missing dirs? (y/N)").lower() != "y":
-                print("Aborting.")
-                sys.exit(1)
-            os.makedirs(os.path.dirname(log_path))
-
-    # Set up root logger & global logger ('restore')
-    # Functions may override this with their own logger instance.
-    logger = logger_init()
-    Chunk.logger_init()
-
-    logger.debug(f"""Arguments: {parsed_args}""")
-
-    # TODO:
-
-    # 4. Add verbosity to a lot of functions for test casing
-    #   Not super complicated and not helpful for actual large world restoration as it results in hundreds of lines,
-    #   but would be helpful for small world restoration testing to identify unintended behavior later on.
-
-    # 5. Optimizing anvil-parser2
-    #   Currently anvil-parser2 is unmaintained and is really hard to use.
-    #   get_chunk is only handled by thrown exceptions, which is slow and looks like a mess frankly
-    #   The library as a whole isn't designed for entity chunks, which is more of our fault for use case, but can be fixed.
-
-    # Call main function
-    ret_code = restore_dimension()
-    # Cleanup
-    sys.exit(ret_code)
+    main(sys.argv)
