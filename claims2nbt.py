@@ -1,13 +1,17 @@
-import argparse, csv, os
+import argparse, csv, os, json
 from nbtlib import File, Compound, List, Int, Long, String
 
 
 def claims2nbt(args):
     # find csv in current directory
-    csv_files = [f for f in os.listdir(".") if f.lower().endswith(".csv")]
-    if not csv_files:
-        raise FileNotFoundError("No .csv file found in the current directory.")
-    csv_path = csv_files[0]
+    csv_path: str = args.claims
+    if not os.path.exists(csv_path):
+        print(f'{csv_path} does not exist. Aborting.')
+        exit(-1)
+    if not csv_path.endswith('.csv'):
+        print(f'{csv_path} is not a CSV file. Aborting.')
+        exit(-1)
+
     print(f'Using {csv_path}.')
 
     claims_dir = "player-claims"
@@ -29,6 +33,12 @@ def claims2nbt(args):
     # load default config for server claims
     with open('protection-disabled.toml', 'r', encoding='utf-8') as f:
         config_content = f.read()
+    
+    # UUID -> Location name mapping for restore.py to read
+    mapping: dict[str, str] = {
+        '00000000-0000-0000-0000-000000000000': 'Server',
+        '00000000-0000-0000-0000-000000000001': 'Expired'
+    }
 
     # loop through all locations
     for idx, (loc, coords) in enumerate(locations.items()):
@@ -86,10 +96,19 @@ def claims2nbt(args):
 
         print(f"Claims for location '{loc}' written to {uuid}.nbt")
 
+        mapping[uuid] = loc
+    
+    with open(os.path.join(args.mapfiledir, 'uuid_mapping.json'), 'w', encoding='utf-8') as f:
+        json.dump(mapping, f)
+        print(f"UUID map saved to {os.path.join(args.mapfiledir, 'uuid_mapping.json')}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run in same folder as .csv with headers Location, Chunk X, Chunk Z, and Dimensions. Generates folder of OPaC-compatible .nbt files."
+        description="Convert per-chunk claims data into OPaC-compatible .nbt files."
     )
+    parser.add_argument('claims', type=str, help='A CSV file that contains the following headers: Location, Chunk X, Chunk Z, and Dimensions.')
+    parser.add_argument('--mapfiledir', type=str, default='./', help='Path to store the UUID mapping file. Defaults to CWD')
     args = parser.parse_args()
 
     claims2nbt(args)

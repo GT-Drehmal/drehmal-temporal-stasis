@@ -1,5 +1,5 @@
 import argparse
-import os, glob, re, time, sys, random
+import os, glob, re, time, sys, random, json
 import logging
 from tqdm.auto import tqdm as auto_tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
@@ -55,35 +55,23 @@ def restore_dimension() -> int:
 
         claimed_chunks = None
         dimension = None
-        if (
-            "claims" in parsed_args.exclude
-        ):  # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
-            claims_dir = os.path.join(parsed_args.active, "data", "openpartiesandclaims", "player-claims")
-            if os.path.exists(claims_dir):
-                dimension = "minecraft:overworld"
-            else:  # one folder depth backwards for nether/end
-                claims_dir = os.path.join(os.path.dirname(parsed_args.active), "data", "openpartiesandclaims", "player-claims")
-                if os.path.exists(claims_dir):
-                    dimension_name = os.path.basename(os.path.normpath(parsed_args.active))
-                    if dimension_name == "DIM-1":
-                        dimension = "minecraft:the_nether"
-                    elif dimension_name == "DIM1":
-                        dimension = "minecraft:the_end"
-                else:  # three folder depth backwards for custom dimensions
-                    claims_dir = os.path.join(
-                        os.path.dirname(os.path.dirname(os.path.dirname(parsed_args.active))),
-                        "data",
-                        "openpartiesandclaims",
-                        "player-claims",
-                    )
-                    if os.path.exists(claims_dir):
-                        dimension = f"minecraft:{os.path.basename(os.path.normpath(parsed_args.active))}"
+        if "claims" in parsed_args.exclude:
+            if not os.path.exists('uuid_mapping.json'):
+                logger.error(
+                    'Cannot find mapping file uuid_mapping.json in current directory. ' \
+                    'This file is required when using the -e claims option.'
+                )
+                return -1
+            mapping = load_mapping('uuid_mapping.json')
+
+            # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
+            claims_dir, dimension = infer_dimension()
             if dimension is None:
                 logger.error(
                     "Argument '-e claims' was indicated, but the player-claims folder was not found! Is your directory structure strange? Aborting..."
                 )
                 return -1
-            claimed_chunks = claims_lookup(claims_dir, dimension)
+            claimed_chunks = claims_lookup(claims_dir, dimension, mapping)
 
         # end prep
 
@@ -286,9 +274,39 @@ def add_chunk_if_not_excluded(
 
 
 # helper functions
+
+def infer_dimension():
+    dimension = None
+    claims_dir = os.path.join(parsed_args.active, "data", "openpartiesandclaims", "player-claims")
+    if os.path.exists(claims_dir):
+        dimension = "minecraft:overworld"
+    else:  # one folder depth backwards for nether/end
+        claims_dir = os.path.join(os.path.dirname(parsed_args.active), "data", "openpartiesandclaims", "player-claims")
+        if os.path.exists(claims_dir):
+            dimension_name = os.path.basename(os.path.normpath(parsed_args.active))
+            if dimension_name == "DIM-1":
+                dimension = "minecraft:the_nether"
+            elif dimension_name == "DIM1":
+                dimension = "minecraft:the_end"
+        else:  # three folder depth backwards for custom dimensions
+            claims_dir = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(parsed_args.active))),
+                "data",
+                "openpartiesandclaims",
+                "player-claims",
+            )
+            if os.path.exists(claims_dir):
+                dimension = f"minecraft:{os.path.basename(os.path.normpath(parsed_args.active))}"
+    logger.info(f'Using {dimension} as inferred dimension.')
+    return claims_dir, dimension
+
+def load_mapping(mapping_file: str) -> dict:
+    logger.info(f'Loading uuid mapping from {mapping_file}')
+    with open(mapping_file, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
 def is_claimed(chunk: Chunk, claimed_chunks: set) -> bool:
     return (chunk.x, chunk.z) in claimed_chunks
-
 
 def get_region_coords(filename: str):
     match = re.fullmatch(r"r\.(-?\d+)\.(-?\d+)\.mca", filename)
@@ -319,25 +337,30 @@ def region_modified(original_region_path: str, active_region_path: str) -> bool:
 
 # exclude 'claims' helper functions
 
-excluded_players = [  # specify static player ids to exclude from restore protection
-    "00000000-0000-0000-0000-000000000000",  # 'Server' player
-    "00000000-0000-0000-0000-000000000001",  # 'Expiration' player
-] + [
-    f"00000000-0000-0000-0000-{i:012d}" for i in range(2, 93)
-] + [ # 93 is 'Terminus'
-    f"00000000-0000-0000-0000-{i:012d}" for i in range(94, 250)
-] # overworld + lo'dahr claims generated from csv
-# TODO: Make not hard coded?
+no_restore_locations = (
+    'Server', 'Expired', 'Terminus', 'Palisades Heath Tower'
+)
 
-def claims_lookup(claims_dir: str, dimension: str) -> set:
+# excluded_players = [  # specify static player ids to exclude from restore protection
+#     "00000000-0000-0000-0000-000000000000",  # 'Server' player
+#     "00000000-0000-0000-0000-000000000001",  # 'Expiration' player
+# ] + [
+#     f"00000000-0000-0000-0000-{i:012d}" for i in range(2, 93)
+# ] + [ # 93 is 'Terminus'
+#     f"00000000-0000-0000-0000-{i:012d}" for i in range(94, 250)
+# ] # overworld + lo'dahr claims generated from csv
+# # TODO: Make not hard coded?
+
+def claims_lookup(claims_dir: str, dimension: str, mapping: dict) -> set[tuple[int, int]]:
     """Iterates through all NBT files in the given directory and generates a set of all claimed chunks in the specified dimension.
 
     Args:
         claims_dir (str): Directory to find claim data in
         dimension (str): Target dimension
+        mapping (dict): Dictionary that maps UUID to its corresponding direction name.
 
     Returns:
-        set: All chunks in the given dimension that have been claimed by a UUID that is *not* in excluded_players
+        set: All chunks in the given dimension that belong to a location that is *not* in no_restore_locations
     """
     claimed_chunks = set()
 
@@ -347,8 +370,10 @@ def claims_lookup(claims_dir: str, dimension: str) -> set:
 
     for filename in os.listdir(claims_dir):
         if not filename.endswith(".nbt"):
+            logger.warning(f'Skipped non-NBT file {filename} in claims directory {claims_dir}')
             continue
-        if any(excluded_id in filename for excluded_id in excluded_players):
+        if mapping[filename[:-4]] in no_restore_locations:
+            logger.info(f'Skipped excluded claim {mapping[filename[:-4]]} ({filename})')
             continue
 
         claim_path = os.path.join(claims_dir, filename)
@@ -360,6 +385,7 @@ def claims_lookup(claims_dir: str, dimension: str) -> set:
 
         dimension_list = claim_data.get("dimensions")
         if not dimension_list:
+            logger.debug(f'Skipped empty claim file {filename}')
             continue
 
         for dimension_name, dimension_data in dimension_list.items():
