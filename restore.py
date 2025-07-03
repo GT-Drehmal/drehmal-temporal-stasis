@@ -13,15 +13,18 @@ from anvil.errors import ChunkNotFound
 
 LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 
-def main(args):
+def main(args=None):
     global parsed_args, logger, log_path  # ugly; artifacts from isolating main code from if __name__ section
     
     # Set up argument parser
-    parser = argparse.ArgumentParser(
-        description='''Another strike of the clock, another iteration of the world, Drehmal rewinds, under the whims of the Mythoclast...
+    description = '''\
+Another strike of the clock, another iteration of the world, Drehmal rewinds, under the whims of the Mythoclast...
 
 example:
-    python restore.py --exclude claims -b -12 -11 14 15 -v -p ".minecraft/saves/ogDrehmal" ".minecraft/saves/actDrehmal"''',
+    python restore.py --exclude claims -b -12 -11 14 15 -v -p ".minecraft/saves/ogDrehmal" ".minecraft/saves/actDrehmal"\
+'''
+    parser = argparse.ArgumentParser(
+        description=description,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
@@ -675,6 +678,5 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
 
 anvil.Chunk = Chunk
 
-# cli org
 if __name__ == "__main__":
-    main(sys.argv)
+    main()

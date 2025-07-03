@@ -3,7 +3,7 @@ from typing import Literal
 from nbtlib import File, Compound, List, Int, Long, String
 
 
-def main(args):
+def main(args=None):
     parser = argparse.ArgumentParser(
         description="Convert per-chunk claims data into OPaC-compatible .nbt files."
     )
@@ -11,7 +11,7 @@ def main(args):
     parser.add_argument('--mapfiledir', type=str, default='./', help='Path to store the UUID mapping file. Defaults to CWD')
     parsed_args = parser.parse_args(args)
 
-    ret_code = claims2nbt(parsed_args.csv_path, parsed_args.mapfiledir)
+    ret_code = claims2nbt(parsed_args.claims, parsed_args.mapfiledir)
     exit(ret_code)
 
 def get_locations(csv_path: str) -> dict[str, list[tuple[int, int, str]]] | Literal[-1]:
@@ -127,9 +127,9 @@ def claims2nbt(csv_path: str, mapfiledir: str) -> int:
     subconfig_id = 1  # Sub-configs start counting at 1
 
     # Generate server claim NBT file by dimension
-    dimension_compounds = Compound({})
+    dimension_compounds: dict[str, Compound] = {}
     for dimension, chunks in dimensions.items():
-        loc_chunks: dict[str, List] = {}
+        loc_chunks: dict[str, list[Compound]] = {}
         # Group claims by location
         # Not entirely necessary - per-chunk claims work just as well
         # This just makes the NBT structure cleaner for debugging
@@ -138,34 +138,36 @@ def claims2nbt(csv_path: str, mapfiledir: str) -> int:
                 # Generate location name to subconfig mapping on-the-fly, and create the corresponding subconfig file.
                 subconfig_filename = f'{legalize_name(loc)}${subconfig_id}.toml'
                 with open(os.path.join(subconfigs_dir, subconfig_filename), 'w', encoding='utf-8') as f:
-                    f.write(f'\n[playerConfig]\n\n	[playerConfig.claims]\n		name = "{loc}"\n\n')
+                    f.write(f'\n[playerConfig]\n\n	[playerConfig.claims]\n		name = "{loc[:100]}"\n\n')
+                if len(loc) > 100:  # Don't think this will ever happen
+                    print(f'Warning: {loc} is longer than 100 characters and will be truncated.')
                 loc_to_index[loc] = subconfig_id
                 subconfig_id += 1
             
-            loc_chunks.setdefault(loc, List([])).append(
+            loc_chunks.setdefault(loc, []).append(
                 Compound({
                     "x": Int(x),
                     "z": Int(z)
                 })
             )
         # We do two passes for simplicity's sake
-        claims = List([])
+        claims = []
         for loc in loc_chunks:
             claims.append(Compound({
                 "state": Compound({
                     "forceloaded": Int(0),
                     "subConfigIndex": Int(loc_to_index[loc])
                 }),
-                "positions": loc_chunks[loc],
+                "positions": List(loc_chunks[loc]),
             }))
         dimension_compounds[dimension] = Compound({
-            "claims": claims
+            "claims": List(claims)
         })
     
     nbt_data = Compound({
         "confirmedActivity": Long(10200546),  # NOTE: See 'c)' at bottom.
-        "username": "Server",
-        "dimensions": dimension_compounds,
+        "username": String("Server"),
+        "dimensions": Compound(dimension_compounds),
     })
     # write nbt file
     nbt_file = File(nbt_data)
@@ -177,7 +179,7 @@ def claims2nbt(csv_path: str, mapfiledir: str) -> int:
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()
 
     # NOTE:
     # c) 'confirmedActivity: Long(10200546)'
