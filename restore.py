@@ -1,21 +1,45 @@
 import argparse
-import os, glob, re, time, sys, random, json
+import glob
 import logging
-from typing import Sequence
-from tqdm.auto import tqdm as auto_tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
+import os
+import random
+import re
+import sys
+import time
+import tomllib
+from typing import Literal, Sequence
+
+import anvil.chunk
+import nbtlib
+from anvil import Chunk, EmptyRegion, Region  # type: ignore
+from anvil.errors import ChunkNotFound
+from anvil.versions import *
 from joblib import Parallel, delayed
 from nbt import nbt
-import nbtlib
-from anvil import Region, Chunk, EmptyRegion  # type: ignore
-import anvil.chunk
-from anvil.versions import *
-from anvil.errors import ChunkNotFound
+from tqdm.auto import tqdm as auto_tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 
+# The value of the playerConfig.claims.name field.
+# Any subconfig belonging to one of the NO_RESTORE_UUIDS,
+# that DOES NOT have an area name matching the following,
+# *will* be restored (i.e. not excluded from restoration).
+NO_RESTORE_LOCATIONS: tuple = (
+    'Terminus', 'Palisades Heath Tower'
+)
+# By default, claimed chunks are excluded from restoration.
+# load_claims adds excluded chunks to a set which is checked against upon the restoration process.
+# Claims that are owned by any of the following UUIDs, however,
+# WILL be restored (i.e. not excluded from restoration),
+# UNLESS they use a subconfig that specifies a claimed area name that matches one in NO_RESTORE_LOCATIONS.
+RESTORE_OVERRIDE_UUIDS = (
+    '00000000-0000-0000-0000-000000000000',
+)
+
 def main(args=None):
     global logger, log_path  # ugly; artifacts from isolating main code from if __name__ section
+
     
     # Set up argument parser
     description = '''\
@@ -100,6 +124,10 @@ example:
 
     logger.debug(f"""Arguments: {parsed_args}""")
 
+    if any(len(x) > 100 for x in NO_RESTORE_LOCATIONS): # type: ignore
+        logger.error('Some of the no-restore location names are longer than 100 characters.')
+        exit(-1)
+
     # Call main function
     ret_code = restore_dimension(
         parsed_args.original,
@@ -112,7 +140,7 @@ example:
         parsed_args.verbose
     )
     # Cleanup
-    sys.exit(ret_code)
+    exit(ret_code)
 
 # see args at bottom of script
 def restore_dimension(
@@ -149,6 +177,9 @@ def restore_dimension(
         original_entities_dir = os.path.join(original_path, "entities")
         active_entities_dir = os.path.join(active_path, "entities")
 
+        if preview:
+            logger.warning(f"Running under PREVIEW mode. No changes will be committed to the files.")
+            
         # Sanity check to prevent accidentally modifying original world
         if not os.path.exists(os.path.join(active_path, ".restore.override")):
             latest_original = max(glob.glob(os.path.join(original_region_dir, "*.mca")), key=os.path.getmtime)
@@ -171,24 +202,26 @@ def restore_dimension(
                     'This file is required when using the -e claims option.'
                 )
                 return -1
-            mapping = load_mapping('uuid_mapping.json')
 
             # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
-            claims_dir, dimension = infer_dimension(active_path)
+            claims_dir, configs_dir, dimension = infer_dimension(active_path)
             if dimension is None:
                 logger.error(
                     "Argument '-e claims' was indicated, but the player-claims folder was not found! Is your directory structure strange? Aborting..."
                 )
                 return -1
-            claimed_chunks = claims_lookup(claims_dir, dimension, mapping)
+            configs_mapping = load_subconfigs(configs_dir, '00000000-0000-0000-0000-000000000000')
+            if configs_mapping == -1:
+                return -1
+            claimed_chunks = load_claims(claims_dir, dimension, configs_mapping)
+            if claimed_chunks == -1:
+                return -1
 
         # end prep
 
-        if preview:
-            logger.warning(f"Running under PREVIEW mode. No changes will be committed to the files.")
         logger.info(f"Beginning restoration of {len(os.listdir(active_region_dir))} regions...")
 
-        logger_init("restore.region", quiet=quiet, verbose=verbose)
+        logger_init(quiet, verbose, name="restore.region")
 
         # iterate through region directories for regions, parse chunks in regions for both entities/blocks, swap out changed chunks
         tasks = []
@@ -267,7 +300,7 @@ def restore_region(
     Returns:
         int: Status code. If 0, region has been restored successfully. If 1, region has been skipped (not restored). If <0, an error has occurred.
     """
-    logger = logger_init(f"restore.region.{idx}", quiet=quiet, verbose=verbose)
+    logger = logger_init(quiet, verbose, name=f"restore.region.{idx}")
     with logging_redirect_tqdm(loggers=[logger], tqdm_class=auto_tqdm): # type: ignore
         original_region_path = os.path.join(original_region_dir, region_file)
         active_region_path = os.path.join(active_region_dir, region_file)
@@ -430,19 +463,17 @@ def infer_dimension(
             )
             if os.path.exists(claims_dir):
                 dimension = f"minecraft:{os.path.basename(os.path.normpath(active_path))}"
+    configs_dir = os.path.join(os.path.dirname(claims_dir), 'player-configs')
     logger.info(f'Using {dimension} as inferred dimension.')
-    return claims_dir, dimension
+    return claims_dir, configs_dir, dimension
 
-def load_mapping(mapping_file: str) -> dict:
-    logger.info(f'Loading uuid mapping from {mapping_file}')
-    with open(mapping_file, 'r', encoding='utf-8') as f:
-        return json.load(f)
 
 def is_claimed(
     chunk: Chunk, 
     claimed_chunks: set
 ) -> bool:
     return (chunk.x, chunk.z) in claimed_chunks
+
 
 def get_region_coords(filename: str):
     match = re.fullmatch(r"r\.(-?\d+)\.(-?\d+)\.mca", filename)
@@ -476,59 +507,108 @@ def region_modified(
 
 # exclude 'claims' helper functions
 
-no_restore_locations = (
-    'Server', 'Expired', 'Terminus', 'Palisades Heath Tower'
-)
 
-# excluded_players = [  # specify static player ids to exclude from restore protection
-#     "00000000-0000-0000-0000-000000000000",  # 'Server' player
-#     "00000000-0000-0000-0000-000000000001",  # 'Expiration' player
-# ] + [
-#     f"00000000-0000-0000-0000-{i:012d}" for i in range(2, 93)
-# ] + [ # 93 is 'Terminus'
-#     f"00000000-0000-0000-0000-{i:012d}" for i in range(94, 250)
-# ] # overworld + lo'dahr claims generated from csv
-# # TODO: Make not hard coded?
+def load_subconfigs(
+    configs_dir: str,
+    uuid: str
+) -> dict[int, str] | Literal[-1]:
+    """Parses the area name of all existing sub-configs of a given player, and generates a map from sub-config indices to their area names (location names).
 
-def claims_lookup(
+    Arguments:
+        configs_dir (str): Path to OPAC's `player-configs` directory.
+        uuid (str): The player we will load subconfigs from.
+
+    Returns:
+        mapping (dict[int, str] | Literal[-1]):
+            A dictionary with `subConfigIndex` as **key** and `playerConfig.claims.name` as **value**.
+            The claim name may be truncated if it was over 100 characters long.
+            
+        If an error was encountered, this function returns `-1`.
+    """
+    mapping: dict[int, str] = {}
+    # Load main config (subConfigIndex = -1)
+    config_file = os.path.join(configs_dir, uuid+'.toml')
+    if os.path.exists(config_file):
+        with open(config_file, 'rb') as f:
+            try:
+                claims_name: str | None = tomllib.load(f)['playerConfig']['claims']['name']
+            except KeyError:
+                logger.warning(f'Cannot find field playerConfig.claims.name in main config file for {uuid}. This file will be skipped.')
+                claims_name = None
+        if claims_name is not None:
+            mapping[-1] = claims_name
+    else:
+        logger.warning(f'Skipping missing config file for {uuid}')
+    # Load subconfigs
+    subconfig_dir = os.path.join(configs_dir, 'sub-configs', uuid+'/')
+    if not os.path.exists(subconfig_dir):
+        logger.error(f'Cannot find subconfig directory {subconfig_dir}')
+        return -1
+    for filename in os.listdir(subconfig_dir):
+        if not filename.endswith('.toml'):
+            logger.warning(f'Skipping non-TOML file {filename} in subconfig directory')
+            continue
+        try:
+            idx = int(filename.split('$')[-1][:-5])
+            if idx <= 0:
+                raise ValueError()
+        except ValueError:
+            logger.warning(f'Skipping incorrect subconfig file name {filename}')
+            continue
+        subconfig_path = os.path.join(subconfig_dir, filename)
+        with open(subconfig_path, 'rb') as f:
+            try:
+                location_name: str = tomllib.load(f)['playerConfig']['claims']['name']
+            except KeyError:
+                logger.warning(f'Cannot find field playerConfig.claims.name in subconfig file {filename} for {uuid}. Subconfigs may be corrupted or misconfigured. This file will be skipped.')
+                continue
+        mapping[idx] = location_name
+    return mapping
+
+
+def load_claims(
     claims_dir: str, 
-    dimension: str, 
-    mapping: dict
-) -> set[tuple[int, int]]:
+    dimension: str,
+    mapping: dict[int, str]
+) -> set[tuple[int, int]] | Literal[-1]:
     """Iterates through all NBT files in the given directory and generates a set of all claimed chunks in the specified dimension.
 
     Args:
         claims_dir (str): Directory to find claim data in
         dimension (str): Target dimension
-        mapping (dict): Dictionary that maps UUID to its corresponding direction name.
+        mapping (dict[int, str]):
+            A dictionary that maps sub-config indices to their corresponding location name (sub-config area name).
+            Generated by `load_subconfigs`.
 
     Returns:
-        set: All chunks in the given dimension that belong to a location that is *not* in no_restore_locations
+        claims_to_exclude_from_restoration (set[tuple[int, int]] | Literal[-1]):
+            A set containing x and z coordinates of all claimed chunks in the given dimension
+            that, if claimed by one of `RESTORE_OVERRIDE_UUIDS`,
+            belong to a location that is *not* in `NO_RESTORE_LOCATIONS`.
+            
+        If an error was encountered, this function returns `-1`.
     """
-    claimed_chunks = set()
+    claimed_chunks: set[tuple[int, int]] = set()
 
     if not os.path.exists(claims_dir):
         logger.exception(f"Claim path {claims_dir} does not exist.")
         sys.exit(-1)
 
-    for filename in os.listdir(claims_dir):
-        if not filename.endswith(".nbt"):
-            logger.warning(f'Skipped non-NBT file {filename} in claims directory {claims_dir}')
-            continue
-        if mapping[filename[:-4]] in no_restore_locations:
-            logger.info(f'Skipped excluded claim {mapping[filename[:-4]]} ({filename})')
+    for claim_filename in os.listdir(claims_dir):
+        if not claim_filename.endswith(".nbt"):
+            logger.warning(f'Skipped non-NBT file {claim_filename} in claims directory {claims_dir}')
             continue
 
-        claim_path = os.path.join(claims_dir, filename)
+        claim_path = os.path.join(claims_dir, claim_filename)
         try:
             claim_data = nbtlib.load(claim_path)
         except Exception as e:
-            logger.warning(f"Error reading claim data '{filename}': {e}")
+            logger.warning(f"Error reading claim data '{claim_filename}': {e}")
             continue
 
         dimension_list = claim_data.get("dimensions")
         if not dimension_list:
-            logger.debug(f'Skipped empty claim file {filename}')
+            logger.debug(f'Skipped empty claim file {claim_filename}')
             continue
 
         for dimension_name, dimension_data in dimension_list.items():
@@ -536,57 +616,63 @@ def claims_lookup(
                 claims = dimension_data.get("claims")
                 if claims is None:
                     continue
-
-                for compound in claims:
-                    positions = compound.get("positions")
+                for clm in claims:
+                    if claim_filename[:-4] in RESTORE_OVERRIDE_UUIDS:
+                        # Claim might still need to be restored (i.e. we shouldn't include it in excluded claims set)
+                        # Check claim subconfig to see if we should add it
+                        state: nbtlib.Compound = clm.get("state")
+                        sub_config_index = state.get("subConfigIndex")
+                        if mapping[int(sub_config_index)] not in NO_RESTORE_LOCATIONS: # type: ignore
+                            logger.debug(f'Ignoring claims of {mapping[sub_config_index]} (${sub_config_index})') # type: ignore
+                            continue
+                    # Add all positions (chunks) of this claim to the set
+                    positions = clm.get("positions")
                     if not positions:
                         continue
-
                     for position in positions:
                         try:
                             chunk_x = int(position.get("x"))
                             chunk_z = int(position.get("z"))
                             claimed_chunks.add((chunk_x, chunk_z))
                         except (ValueError, TypeError) as e:
-                            logger.warning(f"Invalid chunk state position data in file '{filename}': {e}")
+                            logger.warning(f"Skipping invalid chunk state position data in file '{claim_filename}': {e}")
                             continue
     return claimed_chunks
 
 
 def logger_init(
-    name: str = "restore",
-    quiet: bool = False,
-    verbose: bool = False
+    quiet: bool,
+    verbose: bool,
+    name: str = "restore"
 ):
     """Reconfigure the root logger in a futile effort to have working logging in every thread/subprocess.
 
     Args:
+        quiet (bool): Whether to initialize logging in quiet mode
+        verbose (bool): Whether to initialize logging in verbose mode
         name (str, optional): Name of the logger to setup. Defaults to "restore" (script-level root logger).
 
     Returns:
         Logger: The configured logger.
     """
-    root_logger = logging.getLogger()
     fmt = logging.Formatter(LOG_FMT)
     tqdm_handler = tqdmStreamHandler()
     tqdm_handler.setFormatter(fmt)
     tqdm_handler.stream = sys.stderr
-    if quiet:
-        tqdm_handler.setLevel(logging.ERROR)
-    elif verbose:
-        tqdm_handler.setLevel(logging.DEBUG)
-    else:
-        tqdm_handler.setLevel(logging.INFO)
+    tqdm_handler.setLevel(logging.ERROR if quiet else logging.DEBUG if verbose else logging.INFO)
+    root_logger = logging.getLogger()
     if (
         len(root_logger.handlers) > 0
         and root_logger.handlers[0].formatter
         and root_logger.handlers[0].formatter._fmt != LOG_FMT
-    ):
+    ) or len(root_logger.handlers) == 0:
+        # print('Reconfigured root logger')
+        # Reconfigure root logger because it lost its format somehow
         while len(root_logger.handlers) != 0:
             root_logger.removeHandler(root_logger.handlers[0])
         # tqdm stream handler
-        root_logger.addHandler(tqdm_handler)
-        if log_path:  # global variabling all over the place (see if __name__ for logic)
+        # root_logger.addHandler(tqdm_handler)
+        if log_path:  # global variabling all over the place (see main for logic)
             # File handler
             fh = logging.FileHandler(log_path, encoding="utf-8")
             fh.setFormatter(fmt)
@@ -597,11 +683,12 @@ def logger_init(
             root_logger.addHandler(fh)
         root_logger.setLevel(logging.DEBUG)
     logger = logging.getLogger(name)
-    # # Configure new logger if it does not have any handlers
-    # # because for some reason it can inherit file handler and not stream handler :///
-    # # Now it suddenly decides to work again and I do not know why
+    # Configure new logger if it does not have any handlers
+    # because for some reason it can inherit file handler and not stream handler :///
+    # Now it suddenly decides to work again and I do not know why
     if len(logger.handlers) == 0:
         logger.addHandler(tqdm_handler)
+        logger.setLevel(tqdm_handler.level)
     return logger
 
 
@@ -671,7 +758,7 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
     """
 
     __slots__ = ("version", "data", "x", "z", "tile_entities")
-    _logger = logging.root  # Initialized in if __main
+    _logger = logging.root  # Initialized in main
 
     def __init__(self, nbt_data: nbt.NBTFile):
         # Chunk._logger.debug(f'Instantiating Chunk for NBT file {id(nbt_data.file)}')
@@ -727,7 +814,7 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
 
     @classmethod
     def logger_init(cls, quiet: bool = False, verbose: bool = False):
-        cls._logger = logger_init("restore.Chunk", quiet=quiet, verbose=verbose)
+        cls._logger = logger_init(quiet, verbose, name="restore.Chunk")
 
     def __repr__(self):
         return f"Chunk({self.x},{self.z})"

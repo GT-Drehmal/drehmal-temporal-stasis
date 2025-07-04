@@ -16,13 +16,13 @@ def main(args: Sequence[str] | None = None):
     )
     parser.add_argument('claims', type=str, help='A CSV file that contains the following headers: Location, Chunk X, Chunk Z, and Dimensions.')
     parser.add_argument('--uuid', type=str, default='00000000-0000-0000-0000-000000000000', help='UUID of the user that the server claims will belong to. Defaults to Server (00000000-0000-0000-0000-000000000000)')
-    parser.add_argument('-d', '--dir', target='path', type=str, default='./', help='Directory to create player-claims and player-configs data in. Defaults to CWD.')
+    parser.add_argument('-d', '--dir', type=str, default='./', help='Directory to create player-claims and player-configs data in. Defaults to CWD.')
     parsed_args = parser.parse_args(args)
 
     if validate_args(parsed_args) != 0:
         exit(-1)
 
-    ret_code = claims2nbt(parsed_args.claims, parsed_args.uuid, parsed_args.path)
+    ret_code = claims2nbt(parsed_args.claims, parsed_args.uuid, parsed_args.dir)
     exit(ret_code)
 
 
@@ -44,7 +44,7 @@ def validate_args(parsed_args: argparse.Namespace):
     if not parsed_args.claims.endswith('.csv'):
         print(f'{parsed_args.claims} is not a CSV file.')
         return -1
-    if len(parsed_args.uuid) != 36 or parsed_args.count('-') != 4 or not all(l.isalnum() or l == '-' for l in parsed_args.uuid):
+    if len(parsed_args.uuid) != 36 or parsed_args.uuid.count('-') != 4 or not all(l.isalnum() or l == '-' for l in parsed_args.uuid):
         print(f'Invalid UUID {parsed_args.uuid}.')
         return -1
     return 0
