@@ -1,6 +1,7 @@
 import argparse
 import os, glob, re, time, sys, random, json
 import logging
+from typing import Sequence
 from tqdm.auto import tqdm as auto_tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 from joblib import Parallel, delayed
@@ -14,7 +15,7 @@ from anvil.errors import ChunkNotFound
 LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 
 def main(args=None):
-    global parsed_args, logger, log_path  # ugly; artifacts from isolating main code from if __name__ section
+    global logger, log_path  # ugly; artifacts from isolating main code from if __name__ section
     
     # Set up argument parser
     description = '''\
@@ -94,29 +95,47 @@ example:
 
     # Set up root logger & global logger ('restore')
     # Functions may override this with their own logger instance.
-    logger = logger_init()
-    Chunk.logger_init()
+    logger = logger_init(quiet=parsed_args.quiet, verbose=parsed_args.verbose)
+    Chunk.logger_init(quiet=parsed_args.quiet, verbose=parsed_args.verbose)
 
     logger.debug(f"""Arguments: {parsed_args}""")
 
     # Call main function
-    ret_code = restore_dimension()
+    ret_code = restore_dimension(
+        parsed_args.original,
+        parsed_args.active,
+        parsed_args.exclude,
+        parsed_args.boundary,
+        parsed_args.preview,
+        parsed_args.nopbar,
+        parsed_args.quiet,
+        parsed_args.verbose
+    )
     # Cleanup
     sys.exit(ret_code)
 
 # see args at bottom of script
-def restore_dimension() -> int:
+def restore_dimension(
+    original_path: str, 
+    active_path: str, 
+    excludes: Sequence[str],
+    boundaries: Sequence, 
+    preview: bool, 
+    nopbar: bool,
+    quiet: bool,
+    verbose: bool
+) -> int:
     """Performs restoration on the world directory passed in through argparse.
     The world directory can be either the overworld or one of the dimensions.
     The dimension is detected automatically and the corresponding claims data will be used, if applicable.
 
     Arguments:
-        parsed_args (Namespace): See argparse arguments.
+        
 
     Returns:
         int: Return status. If not 0, an error has occurred.
     """
-    if not os.path.exists(parsed_args.original) or not os.path.exists(parsed_args.active):
+    if not os.path.exists(original_path) or not os.path.exists(active_path):
         logger.error("One or both of the given world directories does not exist. Aborting.")
         return -1
 
@@ -125,13 +144,13 @@ def restore_dimension() -> int:
         start_time = time.perf_counter()
         logger.debug(f"restore_world started at {start_time}.")
 
-        original_region_dir = os.path.join(parsed_args.original, "region")
-        active_region_dir = os.path.join(parsed_args.active, "region")
-        original_entities_dir = os.path.join(parsed_args.original, "entities")
-        active_entities_dir = os.path.join(parsed_args.active, "entities")
+        original_region_dir = os.path.join(original_path, "region")
+        active_region_dir = os.path.join(active_path, "region")
+        original_entities_dir = os.path.join(original_path, "entities")
+        active_entities_dir = os.path.join(active_path, "entities")
 
         # Sanity check to prevent accidentally modifying original world
-        if not os.path.exists(os.path.join(parsed_args.active, ".restore.override")):
+        if not os.path.exists(os.path.join(active_path, ".restore.override")):
             latest_original = max(glob.glob(os.path.join(original_region_dir, "*.mca")), key=os.path.getmtime)
             latest_active = max(glob.glob(os.path.join(active_region_dir, "*.mca")), key=os.path.getmtime)
             if latest_original > latest_active:
@@ -145,7 +164,7 @@ def restore_dimension() -> int:
 
         claimed_chunks = None
         dimension = None
-        if "claims" in parsed_args.exclude:
+        if "claims" in excludes:
             if not os.path.exists('uuid_mapping.json'):
                 logger.error(
                     'Cannot find mapping file uuid_mapping.json in current directory. ' \
@@ -155,7 +174,7 @@ def restore_dimension() -> int:
             mapping = load_mapping('uuid_mapping.json')
 
             # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
-            claims_dir, dimension = infer_dimension()
+            claims_dir, dimension = infer_dimension(active_path)
             if dimension is None:
                 logger.error(
                     "Argument '-e claims' was indicated, but the player-claims folder was not found! Is your directory structure strange? Aborting..."
@@ -165,11 +184,11 @@ def restore_dimension() -> int:
 
         # end prep
 
-        if parsed_args.preview:
+        if preview:
             logger.warning(f"Running under PREVIEW mode. No changes will be committed to the files.")
         logger.info(f"Beginning restoration of {len(os.listdir(active_region_dir))} regions...")
 
-        logger_init("restore.region")
+        logger_init("restore.region", quiet=quiet, verbose=verbose)
 
         # iterate through region directories for regions, parse chunks in regions for both entities/blocks, swap out changed chunks
         tasks = []
@@ -186,11 +205,16 @@ def restore_dimension() -> int:
                     claimed_chunks,
                     idx,
                     region_file,
+                    boundaries=boundaries,
+                    excludes=excludes,
+                    preview=preview,
+                    quiet=quiet,
+                    verbose=verbose
                 )
             )
 
         n_jobs = os.cpu_count()
-        if parsed_args.nopbar:
+        if nopbar:
             Parallel(n_jobs=n_jobs, backend="loky", prefer="processes")(tasks)
         else:
             ProgressParallel(
@@ -203,7 +227,7 @@ def restore_dimension() -> int:
         )
         return 1
     logger.info(
-        f"Restored {dimension} at {parsed_args.active} to its original state at {parsed_args.original} in {time.perf_counter() - start_time:.3f} seconds"
+        f"Restored {dimension} at {active_path} to its original state at {original_path} in {time.perf_counter() - start_time:.3f} seconds"
     )
     return 0
 
@@ -216,6 +240,11 @@ def restore_region(
     claimed_chunks: set,
     idx: int,
     region_file: str,
+    boundaries: Sequence,
+    excludes: Sequence[str],
+    preview: bool,
+    quiet: bool,
+    verbose: bool
 ) -> int:
     """Performs a restoration on the given .mca file.
     Chunks (as well as entities) in the active region are overwritten with the corresponding chunks in the original region,
@@ -238,8 +267,8 @@ def restore_region(
     Returns:
         int: Status code. If 0, region has been restored successfully. If 1, region has been skipped (not restored). If <0, an error has occurred.
     """
-    logger = logger_init(f"restore.region.{idx}")
-    with logging_redirect_tqdm(loggers=[logger], tqdm_class=auto_tqdm):
+    logger = logger_init(f"restore.region.{idx}", quiet=quiet, verbose=verbose)
+    with logging_redirect_tqdm(loggers=[logger], tqdm_class=auto_tqdm): # type: ignore
         original_region_path = os.path.join(original_region_dir, region_file)
         active_region_path = os.path.join(active_region_dir, region_file)
         original_entities_path = os.path.join(original_entities_dir, region_file)
@@ -263,8 +292,8 @@ def restore_region(
 
         regional_x, regional_z = get_region_coords(region_file)
 
-        if parsed_args.boundary:
-            min_x, min_z, max_x, max_z = map(int, parsed_args.boundary)
+        if boundaries:
+            min_x, min_z, max_x, max_z = map(int, boundaries)
             if not (min_x <= regional_x <= max_x and min_z <= regional_z <= max_z):
                 logger.debug(
                     f"Region ({regional_x}, {regional_z}) not within allowed boundary ({min_x}, {min_z}) - ({max_x}, {max_z}), skipping."
@@ -325,17 +354,25 @@ def restore_region(
                 # if both active & original exist, pass to process_chunk for additional logic to choose. Usually original is chosen.
                 if active_region_chunk and original_region_chunk:
                     add_chunk_if_not_excluded(
-                        restored_region, active_region_chunk, original_region_chunk, claimed_chunks=claimed_chunks
+                        restored_region,
+                        active_region_chunk,
+                        original_region_chunk,
+                        claimed_chunks=claimed_chunks,
+                        excludes=excludes
                     )
                 if restore_entities and active_entities_chunk and original_entities_chunk:
                     add_chunk_if_not_excluded(
-                        restored_entities, active_entities_chunk, original_entities_chunk, claimed_chunks=claimed_chunks
+                        restored_entities,
+                        active_entities_chunk,
+                        original_entities_chunk,
+                        claimed_chunks=claimed_chunks,
+                        excludes=excludes
                     )
                 logger.debug(f"Updated chunk ({chunk_x}, {chunk_z}) in {region_file}")
 
         # end region > chunk loop
 
-        if not parsed_args.preview:
+        if not preview:
             restored_region.save(active_region_path)
             original_mtime = os.path.getmtime(original_region_path)
             os.utime(active_region_path, (original_mtime, original_mtime))
@@ -352,9 +389,13 @@ def restore_region(
 
 # chunk restoration logic, currently only used for -exclude claims, but intended for more logic/exclusion cases.
 def add_chunk_if_not_excluded(
-    restored_region: EmptyRegion, active_chunk: Chunk, original_chunk: Chunk, claimed_chunks: set = set()
+    restored_region: EmptyRegion,
+    active_chunk: Chunk,
+    original_chunk: Chunk,
+    claimed_chunks: set,
+    excludes: Sequence[str]
 ):
-    if "claims" in parsed_args.exclude and is_claimed(active_chunk, claimed_chunks):
+    if "claims" in excludes and is_claimed(active_chunk, claimed_chunks):
         logger.debug(f"{active_chunk} is claimed. Skipping...")
         restored_region.add_chunk(active_chunk) # type: ignore
         return
@@ -365,28 +406,30 @@ def add_chunk_if_not_excluded(
 
 # helper functions
 
-def infer_dimension():
+def infer_dimension(
+    active_path: str
+):
     dimension = None
-    claims_dir = os.path.join(parsed_args.active, "data", "openpartiesandclaims", "player-claims")
+    claims_dir = os.path.join(active_path, "data", "openpartiesandclaims", "player-claims")
     if os.path.exists(claims_dir):
         dimension = "minecraft:overworld"
     else:  # one folder depth backwards for nether/end
-        claims_dir = os.path.join(os.path.dirname(parsed_args.active), "data", "openpartiesandclaims", "player-claims")
+        claims_dir = os.path.join(os.path.dirname(active_path), "data", "openpartiesandclaims", "player-claims")
         if os.path.exists(claims_dir):
-            dimension_name = os.path.basename(os.path.normpath(parsed_args.active))
+            dimension_name = os.path.basename(os.path.normpath(active_path))
             if dimension_name == "DIM-1":
                 dimension = "minecraft:the_nether"
             elif dimension_name == "DIM1":
                 dimension = "minecraft:the_end"
         else:  # three folder depth backwards for custom dimensions
             claims_dir = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(parsed_args.active))),
+                os.path.dirname(os.path.dirname(os.path.dirname(active_path))),
                 "data",
                 "openpartiesandclaims",
                 "player-claims",
             )
             if os.path.exists(claims_dir):
-                dimension = f"minecraft:{os.path.basename(os.path.normpath(parsed_args.active))}"
+                dimension = f"minecraft:{os.path.basename(os.path.normpath(active_path))}"
     logger.info(f'Using {dimension} as inferred dimension.')
     return claims_dir, dimension
 
@@ -395,7 +438,10 @@ def load_mapping(mapping_file: str) -> dict:
     with open(mapping_file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def is_claimed(chunk: Chunk, claimed_chunks: set) -> bool:
+def is_claimed(
+    chunk: Chunk, 
+    claimed_chunks: set
+) -> bool:
     return (chunk.x, chunk.z) in claimed_chunks
 
 def get_region_coords(filename: str):
@@ -409,7 +455,10 @@ def get_region_coords(filename: str):
     return region_x, region_z
 
 
-def region_modified(original_region_path: str, active_region_path: str) -> bool:
+def region_modified(
+    original_region_path: str, 
+    active_region_path: str
+) -> bool:
     """Check if the region file has been modified.
 
     Args:
@@ -441,7 +490,11 @@ no_restore_locations = (
 # ] # overworld + lo'dahr claims generated from csv
 # # TODO: Make not hard coded?
 
-def claims_lookup(claims_dir: str, dimension: str, mapping: dict) -> set[tuple[int, int]]:
+def claims_lookup(
+    claims_dir: str, 
+    dimension: str, 
+    mapping: dict
+) -> set[tuple[int, int]]:
     """Iterates through all NBT files in the given directory and generates a set of all claimed chunks in the specified dimension.
 
     Args:
@@ -500,7 +553,11 @@ def claims_lookup(claims_dir: str, dimension: str, mapping: dict) -> set[tuple[i
     return claimed_chunks
 
 
-def logger_init(name: str = "restore"):
+def logger_init(
+    name: str = "restore",
+    quiet: bool = False,
+    verbose: bool = False
+):
     """Reconfigure the root logger in a futile effort to have working logging in every thread/subprocess.
 
     Args:
@@ -514,9 +571,9 @@ def logger_init(name: str = "restore"):
     tqdm_handler = tqdmStreamHandler()
     tqdm_handler.setFormatter(fmt)
     tqdm_handler.stream = sys.stderr
-    if parsed_args.quiet:
+    if quiet:
         tqdm_handler.setLevel(logging.ERROR)
-    elif parsed_args.verbose:
+    elif verbose:
         tqdm_handler.setLevel(logging.DEBUG)
     else:
         tqdm_handler.setLevel(logging.INFO)
@@ -533,7 +590,7 @@ def logger_init(name: str = "restore"):
             # File handler
             fh = logging.FileHandler(log_path, encoding="utf-8")
             fh.setFormatter(fmt)
-            if parsed_args.verbose:
+            if verbose:
                 fh.setLevel(logging.DEBUG)
             else:
                 fh.setLevel(logging.INFO)
@@ -669,8 +726,8 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
         # Chunk._logger.debug(f'Generated Chunk instance for NBT file {id(nbt_data.file)}')
 
     @classmethod
-    def logger_init(cls):
-        cls._logger = logger_init("restore.Chunk")
+    def logger_init(cls, quiet: bool = False, verbose: bool = False):
+        cls._logger = logger_init("restore.Chunk", quiet=quiet, verbose=verbose)
 
     def __repr__(self):
         return f"Chunk({self.x},{self.z})"
