@@ -1,4 +1,4 @@
-import argparse, csv, os, json, sys
+import argparse, csv, os, shutil
 from typing import Sequence
 from nbtlib import File, Compound, List, Int, Long, String
 
@@ -16,7 +16,7 @@ def main(args: Sequence[str] | None = None):
     )
     parser.add_argument('claims', type=str, help='A CSV file that contains the following headers: Location, Chunk X, Chunk Z, and Dimensions.')
     parser.add_argument('--uuid', type=str, default='00000000-0000-0000-0000-000000000000', help='UUID of the user that the server claims will belong to. Defaults to Server (00000000-0000-0000-0000-000000000000)')
-    parser.add_argument('-d', '--dir', type=str, default='./', help='Directory to create player-claims and player-configs data in. Defaults to CWD.')
+    parser.add_argument('-d', '--dir', type=str, default='./', help='Directory to create player-claims and player-configs data in. Defaults to CWD. `{root_dir}/player-configs` must be an empty directory as sub-config files may conflict with one another.')
     parsed_args = parser.parse_args(args)
 
     if validate_args(parsed_args) != 0:
@@ -47,6 +47,19 @@ def validate_args(parsed_args: argparse.Namespace):
     if len(parsed_args.uuid) != 36 or parsed_args.uuid.count('-') != 4 or not all(l.isalnum() or l == '-' for l in parsed_args.uuid):
         print(f'Invalid UUID {parsed_args.uuid}.')
         return -1
+    
+    if not os.path.exists(parsed_args.dir):
+        # Soft error
+        print(f'{parsed_args.dir} does not exist and will be created.')
+
+    player_configs_dir = os.path.join(parsed_args.dir, 'player-configs')
+    if os.path.exists(player_configs_dir) and len(os.listdir(player_configs_dir)) != 0:
+        # Another soft error
+        if input(f'{player_configs_dir} is not empty! OK to delete its contents? (Y/n) ').lower() == 'n':
+            print('Aborting.')
+            return -1
+        shutil.rmtree(player_configs_dir)
+        print(f'Cleared {player_configs_dir}')
     return 0
 
 
@@ -70,8 +83,12 @@ def parse_dimensions(csv_path: str):
                 print(f'The supplied CSV file {csv_path} is malformed.')
                 return -1
             loc: str = row["Location"]
-            x = int(row["Chunk X"])
-            z = int(row["Chunk Z"])
+            try:
+                x = int(row["Chunk X"])
+                z = int(row["Chunk Z"])
+            except Exception as e:
+                print(f'Unexpected exception when parsing row: {row}')
+                raise e
             dimension: str = row["Dimension"]
             dimensions.setdefault(dimension, []).append((loc, x, z))
 
@@ -120,6 +137,7 @@ def claims2nbt(csv_path: str, uuid: str, root_dir: str) -> int:
             Must be well-formed and contain the columns "Location", "Chunk X", "Chunk Z", and "Dimension".
         uuid (str): The player or "player" that will own the claimed chunks.
         root_dir (str): Directory to store generated files in.
+            `{root_dir}/player-configs` must be an empty directory as sub-config files may conflict with one another.
 
     Returns:
         ret_code (int): If 0, files have been created successfully. Otherwise, an error has occurred.
