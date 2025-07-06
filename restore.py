@@ -26,7 +26,7 @@ LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 # that DOES NOT have an area name matching the following,
 # *will* be restored (i.e. not excluded from restoration).
 NO_RESTORE_LOCATIONS: tuple = (
-    'Terminus', 'Palisades Heath Tower'
+    'The Terminus', 'Palisades Heath Tower'
 )
 # By default, claimed chunks are excluded from restoration.
 # load_claims adds excluded chunks to a set which is checked against upon the restoration process.
