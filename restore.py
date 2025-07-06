@@ -216,13 +216,6 @@ def restore_dimension(
         claimed_chunks = None
         dimension = None
         if "claims" in excludes:
-            if not os.path.exists('uuid_mapping.json'):
-                logger.error(
-                    'Cannot find mapping file uuid_mapping.json in current directory. ' \
-                    'This file is required when using the -e claims option.'
-                )
-                return -1
-
             # find player-claims folder and load all player claim chunks into a set for later cross-referencing in restoration
             claims_dir, configs_dir, dimension = infer_dimension(active_path)
             if dimension is None:
