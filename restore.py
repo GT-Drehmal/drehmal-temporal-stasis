@@ -132,6 +132,15 @@ example:
         "--logf", type=str, default="", help="same as --log, but automatically creates missing directories."
     )
 
+    debug_options_g = parser.add_argument_group(
+        "debug options"
+    )
+    debug_options_g.add_argument(
+        '--sequential', 
+        action='store_true', 
+        help='use sequential processing instead of parallel for a more readable log.'
+    )
+
     parsed_args = parser.parse_args(args)
 
     log_path = parsed_args.log if parsed_args.log else parsed_args.logf
@@ -160,7 +169,8 @@ example:
         parsed_args.preview,
         parsed_args.nopbar,
         parsed_args.quiet,
-        parsed_args.verbose
+        parsed_args.verbose,
+        parsed_args.sequential
     )
     # Cleanup
     exit(ret_code)
@@ -174,7 +184,8 @@ def restore_dimension(
     preview: bool, 
     nopbar: bool,
     quiet: bool,
-    verbose: bool
+    verbose: bool,
+    sequential: bool
 ) -> int:
     """Performs restoration on the world directory passed in through argparse.
     The world directory can be either the overworld or one of the dimensions.
@@ -195,6 +206,7 @@ def restore_dimension(
         verbose (bool): If `true`, shows all log messages.
             If both `verbose` and `quiet` are `True`, `quiet` will take precedence, and
             if `log_path` is set, then log written to the file will be verbose.
+        sequential (bool): If `true`, uses sequential processing instead of joblib's parallel.
 
     Returns:
         int: Return status. If not 0, an error has occurred.
@@ -260,8 +272,9 @@ def restore_dimension(
             if not region_file.endswith(".mca"):
                 logger.info(f"Skipping non-anvil file {region_file}")
                 continue
-            tasks.append(
-                delayed(restore_region)(
+            if sequential:
+                ## Sequential restoration for debugging
+                restore_region(
                     original_region_dir,
                     active_region_dir,
                     original_entities_dir,
@@ -269,21 +282,38 @@ def restore_dimension(
                     claimed_chunks,
                     idx,
                     region_file,
-                    boundaries=boundaries,
-                    excludes=excludes,
-                    preview=preview,
-                    quiet=quiet,
-                    verbose=verbose
+                    excludes,
+                    boundaries,
+                    preview,
+                    quiet,
+                    verbose
                 )
-            )
+            else:
+                tasks.append(
+                    delayed(restore_region)(
+                        original_region_dir,
+                        active_region_dir,
+                        original_entities_dir,
+                        active_entities_dir,
+                        claimed_chunks,
+                        idx,
+                        region_file,
+                        excludes=excludes,
+                        boundaries=boundaries,
+                        preview=preview,
+                        quiet=quiet,
+                        verbose=verbose
+                    )
+                )
 
-        n_jobs = os.cpu_count()
-        if nopbar:
-            Parallel(n_jobs=n_jobs, backend="loky", prefer="processes")(tasks)
-        else:
-            ProgressParallel(
-                desc="Restoration progress", total=len(tasks), unit="reg", n_jobs=n_jobs, backend="loky", prefer="processes"
-            )(tasks)
+        if not sequential:
+            n_jobs = os.cpu_count()
+            if nopbar:
+                Parallel(n_jobs=n_jobs, backend="loky", prefer="processes")(tasks)
+            else:
+                ProgressParallel(
+                    desc="Restoration progress", total=len(tasks), unit="reg", n_jobs=n_jobs, backend="loky", prefer="processes"
+                )(tasks)
 
     except KeyboardInterrupt:
         logger.exception(
