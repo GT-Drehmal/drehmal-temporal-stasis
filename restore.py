@@ -37,6 +37,11 @@ RESTORE_OVERRIDE_UUIDS: tuple = (
     '00000000-0000-0000-0000-000000000000',
 )
 
+DEFAULT_LEVEL = logging.INFO
+QUIET_LEVEL = logging.WARNING
+TRACE_LVL_NUM = 5
+VERBOSE_LEVEL = TRACE_LVL_NUM
+
 def main(args: Sequence[str] | None = None):
     """Sets up `argparse` and calls the main function `restore_dimension`.
 
@@ -377,6 +382,7 @@ def restore_region(
             restored_entities = EmptyRegion(regional_x, regional_z)
 
         # region > chunk granularity starts here. 32x32 chunks per region
+        logger.debug(f'Beginning restoration of region {region_file}...')
         region_start_time = time.perf_counter()
         for chunk_x in range(32):
             for chunk_z in range(32):
@@ -475,7 +481,7 @@ def add_chunk_if_not_excluded(
         excludes (Sequence[str]): Restoration exclusion option. Currently only supports empty or `Sequence[Literal['Claims']]`
     """
     if "claims" in excludes and is_claimed(active_chunk, claimed_chunks):
-        logger.debug(f"{active_chunk} is claimed. Skipping...")
+        logger.trace(f"{active_chunk} is claimed. Skipping...")
         restored_region.add_chunk(active_chunk) # type: ignore
         return
     else:
@@ -726,40 +732,37 @@ def logger_init(
     Returns:
         Logger: The configured logger.
     """
+    # # Add a new TRACE level = 5
+    def _trace(self, message, *args, **kwargs):
+        if self.isEnabledFor(TRACE_LVL_NUM):
+            self._log(TRACE_LVL_NUM, message, args, **kwargs)
+    def _trace_module_level(message, *args, **kwargs):
+        logging.log(TRACE_LVL_NUM, message, *args, **kwargs)
+    logging.addLevelName(TRACE_LVL_NUM, 'TRACE')
+    setattr(logging, 'TRACE', TRACE_LVL_NUM)
+    setattr(logging.getLoggerClass(), 'trace', _trace)
+    setattr(logging, 'trace', _trace_module_level)
+    # logging.addLevelName(TRACE_LVL_NUM, 'TRACE')
     fmt = logging.Formatter(LOG_FMT)
     tqdm_handler = tqdmStreamHandler()
     tqdm_handler.setFormatter(fmt)
     tqdm_handler.stream = sys.stderr
-    tqdm_handler.setLevel(logging.ERROR if quiet else logging.DEBUG if verbose else logging.INFO)
-    root_logger = logging.getLogger()
-    if (
-        len(root_logger.handlers) > 0
-        and root_logger.handlers[0].formatter
-        and root_logger.handlers[0].formatter._fmt != LOG_FMT
-    ) or len(root_logger.handlers) == 0:
-        # print('Reconfigured root logger')
-        # Reconfigure root logger because it lost its format somehow
-        while len(root_logger.handlers) != 0:
-            root_logger.removeHandler(root_logger.handlers[0])
-        # tqdm stream handler
-        # root_logger.addHandler(tqdm_handler)
-        if log_path:  # global variabling all over the place (see main for logic)
-            # File handler
-            fh = logging.FileHandler(log_path, encoding="utf-8")
-            fh.setFormatter(fmt)
-            if verbose:
-                fh.setLevel(logging.DEBUG)
-            else:
-                fh.setLevel(logging.INFO)
-            root_logger.addHandler(fh)
-        root_logger.setLevel(logging.DEBUG)
+    tqdm_handler.setLevel(QUIET_LEVEL if quiet else VERBOSE_LEVEL if verbose else DEFAULT_LEVEL)
+    if log_path:  # global variabling all over the place (see main for logic)
+        # File handler
+        fh = logging.FileHandler(log_path, encoding="utf-8")
+        fh.setFormatter(fmt)
+        if verbose:
+            fh.setLevel(VERBOSE_LEVEL)
+        else:
+            fh.setLevel(DEFAULT_LEVEL)
     logger = logging.getLogger(name)
-    # Configure new logger if it does not have any handlers
-    # because for some reason it can inherit file handler and not stream handler :///
-    # Now it suddenly decides to work again and I do not know why
-    if len(logger.handlers) == 0:
-        logger.addHandler(tqdm_handler)
-        logger.setLevel(tqdm_handler.level)
+    # Configure new logger
+    logger.setLevel(VERBOSE_LEVEL)
+    logger.handlers = [tqdm_handler]
+    if log_path:
+        logger.handlers = [tqdm_handler, fh]
+    logger.propagate = False
     return logger
 
 
@@ -832,10 +835,10 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
     _logger = logging.root  # Initialized in main
 
     def __init__(self, nbt_data: nbt.NBTFile):
-        # Chunk._logger.debug(f'Instantiating Chunk for NBT file {id(nbt_data.file)}')
+        # Chunk._logger.trace(f'Instantiating Chunk for NBT file {id(nbt_data.file)}')
         try:
             self.version = nbt_data["DataVersion"].value
-            Chunk._logger.debug(f"Chunk data version is {self.version}")
+            Chunk._logger.trace(f"Chunk data version is {self.version}")
         except KeyError:
             self.version = VERSION_PRE_15w32a
             Chunk._logger.debug(f"Assuming pre-1.9 snapshot 15w32a due to missing Data Version")
@@ -843,10 +846,10 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
         if self.version >= VERSION_21w43a:
             self.data = nbt_data
             if "block_entities" in self.data:
-                Chunk._logger.debug("Using block_entities as tile_entities")
+                Chunk._logger.trace("Using block_entities as tile_entities")
                 self.tile_entities = self.data["block_entities"]
             elif "Entities" in self.data:
-                Chunk._logger.debug("Using Entities as tile_entities")
+                Chunk._logger.trace("Using Entities as tile_entities")
                 self.tile_entities = self.data["Entities"]
             else:
                 Chunk._logger.debug("Leaving tile_entities blank")
@@ -855,33 +858,35 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
             try:
                 self.data = nbt_data["Level"]
                 if "TileEntities" in self.data:
-                    Chunk._logger.debug("Using TileEntities as tile_entities")
+                    Chunk._logger.trace("Using TileEntities as tile_entities")
                     self.tile_entities = self.data["TileEntities"]
             except KeyError:
                 self.data = nbt_data
                 if "TileEntities" in self.data:
-                    Chunk._logger.debug("Using TileEntities as tile_entities")
+                    Chunk._logger.trace("Using TileEntities as tile_entities")
                     self.tile_entities = self.data["TileEntities"]
                 else:
-                    Chunk._logger.debug("Using Entities as tile_entities")
+                    Chunk._logger.trace("Using Entities as tile_entities")
                     self.tile_entities = self.data.get("Entities", [])
 
+        Chunk._logger.trace("Extracting positions data")
         if ("xPos" not in nbt_data) or ("zPos" not in nbt_data):
             try:  # entity files use position
-                Chunk._logger.debug("Looking for Position in entity file")
+                Chunk._logger.trace("Is entity file")
                 self.x = self.data["Position"].value[0]
                 self.z = self.data["Position"].value[1]
             except (
                 KeyError
             ):  # sometimes some entity files are magically dataversion 2730 and mystically have an extra layer compound with no key.
-                Chunk._logger.debug("Looking for Position in data version 2730 entity file")
+                Chunk._logger.trace("Data version may be 2730")
                 self.x = self.data[""]["Position"].value[0]
                 self.z = self.data[""]["Position"].value[1]
         else:  # region files use xpos zpos
-            Chunk._logger.debug("Extracting positions data from region file")
+            Chunk._logger.trace("Is region file")
             self.x = self.data["xPos"].value
             self.z = self.data["zPos"].value
-        # Chunk._logger.debug(f'Generated Chunk instance for NBT file {id(nbt_data.file)}')
+        Chunk._logger.trace(f"Chunk positions are {self.x},{self.z}")
+        # Chunk._logger.trace(f'Generated Chunk instance for NBT file {id(nbt_data.file)}')
 
     @classmethod
     def logger_init(cls, quiet: bool = False, verbose: bool = False):
