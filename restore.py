@@ -22,9 +22,9 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 LOG_FMT = "%(levelname)s %(name)s:%(lineno)d %(message)s"
 
 # The value of the playerConfig.claims.name field.
-# Any subconfig belonging to one of the NO_RESTORE_UUIDS,
+# Any subconfig belonging to one of the RESTORE_OVERRIDE_UUIDS,
 # that DOES NOT have an area name matching the following,
-# *will* be restored (i.e. not excluded from restoration).
+# WILL be restored (i.e. not excluded from restoration).
 NO_RESTORE_LOCATIONS: tuple = (
     'The Terminus', 'Palisades Heath Tower'
 )
@@ -60,9 +60,13 @@ example:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "original", help='path to original state/world directory. Must contain a "region" and an "entities" folder.'
+        "original", 
+        help='path to original state/world directory. Must contain a "region" and an "entities" folder.'
     )
-    parser.add_argument("active", help='path to active world directory. Must contain a "region" and an "entities" folder.')
+    parser.add_argument(
+        "active", 
+        help='path to active world directory. Must contain a "region" and an "entities" folder.'
+    )
     parser.add_argument(
         "-e",
         "--exclude",
@@ -80,9 +84,16 @@ example:
         metavar=("minX", "minY", "maxX", "maxY"),
         help="a drawn boundary box. Regions outside the box are not restored, only those within. Expects REGIONAL coordinates.",
     )
-    parser.add_argument("-p", "--preview", action="store_true", help="preview changes without saving.")
+    parser.add_argument(
+        "-p", 
+        "--preview", 
+        action="store_true", 
+        help="preview changes without saving."
+    )
 
-    display_g = parser.add_argument_group("display options")
+    display_g = parser.add_argument_group(
+        "display options"
+    )
     display_g.add_argument(
         "-v",
         "--verbose",
@@ -102,7 +113,9 @@ example:
         help="disable the progress bar. Can be helpful when piping output into a log file.",
     )
 
-    log_options_g = parser.add_argument_group("log options")
+    log_options_g = parser.add_argument_group(
+        "log options"
+    )
     log_options_mutx_g = log_options_g.add_mutually_exclusive_group()
     log_options_mutx_g.add_argument(
         "--log",
@@ -128,8 +141,6 @@ example:
     # Functions may override this with their own logger instance.
     logger = logger_init(quiet=parsed_args.quiet, verbose=parsed_args.verbose)
     Chunk.logger_init(quiet=parsed_args.quiet, verbose=parsed_args.verbose)
-
-    logger.debug(f"""Arguments: {parsed_args}""")
 
     if any(len(x) > 100 for x in NO_RESTORE_LOCATIONS): # type: ignore
         logger.error('Some of the no-restore location names are longer than 100 characters.')
@@ -183,6 +194,8 @@ def restore_dimension(
     Returns:
         int: Return status. If not 0, an error has occurred.
     """
+    logger.debug(f"""Arguments: {locals()}""")
+
     if not os.path.exists(original_path) or not os.path.exists(active_path):
         logger.error("One or both of the given world directories does not exist. Aborting.")
         return -1
@@ -512,6 +525,7 @@ def infer_dimension(
                 dimension = f"minecraft:{os.path.basename(os.path.normpath(active_path))}"
     configs_dir = os.path.join(os.path.dirname(claims_dir), 'player-configs')
     logger.info(f'Using {dimension} as inferred dimension.')
+    logger.debug(f'opac folder = {os.path.dirname(claims_dir)}')
     return claims_dir, configs_dir, dimension
 
 
@@ -639,7 +653,7 @@ def load_claims(
 
     if not os.path.exists(claims_dir):
         logger.exception(f"Claim path {claims_dir} does not exist.")
-        sys.exit(-1)
+        return -1
 
     for claim_filename in os.listdir(claims_dir):
         if not claim_filename.endswith(".nbt"):
@@ -650,7 +664,7 @@ def load_claims(
         try:
             claim_data = nbtlib.load(claim_path)
         except Exception as e:
-            logger.warning(f"Error reading claim data '{claim_filename}': {e}")
+            logger.warning(f"Skipping invalid claim file {claim_filename}: {e.__class__.__name__} ({e})")
             continue
 
         dimension_list = claim_data.get("dimensions")
@@ -669,8 +683,17 @@ def load_claims(
                         # Check claim subconfig to see if we should add it
                         state: nbtlib.Compound = clm.get("state")
                         sub_config_index = state.get("subConfigIndex")
-                        if mapping[int(sub_config_index)] not in NO_RESTORE_LOCATIONS: # type: ignore
-                            logger.debug(f'Ignoring claims of {mapping[sub_config_index]} (${sub_config_index})') # type: ignore
+                        try:
+                            if mapping[int(sub_config_index)] not in NO_RESTORE_LOCATIONS: # type: ignore
+                                logger.debug(f'Ignoring claims of {mapping[sub_config_index]} (${sub_config_index})') # type: ignore
+                                continue
+                        except KeyError:
+                            # Happens when a subconfig doesn't have a name or is otherwise left unparsed
+                            # If this happens, it's definitely not gonna be in NO_RESTORE_LOCATIONS.
+                            logger.debug(f'Ignoring unnamed subconfig claims ${sub_config_index} of {claim_filename[:-4]}')
+                            continue
+                        except ValueError:
+                            logger.warning(f'The claims file {claim_filename} contains malformed field (subConfigIndex = {sub_config_index}). This file will be skipped.')
                             continue
                     # Add all positions (chunks) of this claim to the set
                     positions = clm.get("positions")
@@ -682,8 +705,9 @@ def load_claims(
                             chunk_z = int(position.get("z"))
                             claimed_chunks.add((chunk_x, chunk_z))
                         except (ValueError, TypeError) as e:
-                            logger.warning(f"Skipping invalid chunk state position data in file '{claim_filename}': {e}")
+                            logger.warning(f"Skipping invalid chunk state position data in file '{claim_filename}': {e.__class__.__name__} ({e})")
                             continue
+        logger.debug(f'Processed claim file {claim_filename}')
     return claimed_chunks
 
 
