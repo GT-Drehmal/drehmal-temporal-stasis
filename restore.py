@@ -40,7 +40,7 @@ RESTORE_OVERRIDE_UUIDS: tuple = (
 DEFAULT_LEVEL = logging.INFO
 QUIET_LEVEL = logging.WARNING
 TRACE_LVL_NUM = 5
-VERBOSE_LEVEL = TRACE_LVL_NUM
+VERBOSE_LEVEL = logging.DEBUG
 
 def main(args: Sequence[str] | None = None):
     """Sets up `argparse` and calls the main function `restore_dimension`.
