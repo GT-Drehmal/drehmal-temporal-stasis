@@ -6,7 +6,11 @@ scoreboard objectives add sts_heard_name dummy
 scoreboard objectives add oob_warning dummy
 # Tracks if player has already been killed for being out of bounds. Reset when respawn
 scoreboard objectives add oob_murdered dummy
+# Debug values
+scoreboard objectives add debug dummy
 # Activates out of bounds check
 scoreboard players add #oob_notallowed? bool 0 
 # Allows all % events to be disabled
 scoreboard players add #story_disabled? bool 0
+
+function daddons:debug/terminus_health_check
