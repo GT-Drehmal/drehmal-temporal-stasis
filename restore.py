@@ -823,7 +823,9 @@ def logger_init(
             fh.setLevel(DEFAULT_LEVEL)
     logger = logging.getLogger(name)
     # Configure new logger
-    logger.setLevel(VERBOSE_LEVEL)
+    logger.setLevel(tqdm_handler.level)
+    if log_path:
+        logger.setLevel(fh.level)
     logger.handlers = [tqdm_handler]
     if log_path:
         logger.handlers = [tqdm_handler, fh]
