@@ -13,5 +13,10 @@
 			"path": "../restore"
 		}
 	],
-	"settings": {}
+	"settings": {},
+	"extensions": {
+		"recommendations": [
+			"brennofruhauf.ocms-theme"
+		]
+	}
 }
