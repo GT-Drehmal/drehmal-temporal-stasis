@@ -230,6 +230,8 @@ scoreboard players reset #wdespawn timer
 
 scoreboard players reset #played_pigstep? bool
 
+# Coven of Potentia & bpalace fights
+scoreboard players reset #rhalon_triggered bool
 scoreboard players reset #bpalace.tevus bool
 scoreboard players reset #bpalace.cyard bool
 
@@ -269,6 +271,7 @@ scoreboard players reset #fzy_picked? bool
 
 scoreboard players reset #b.passive_alive? bool
 
+# Av'Sal repository holotext "pressure plate" appearance
 function stasis:holotext_restore
 
 say [Temporal Stasis] Rollback complete.
