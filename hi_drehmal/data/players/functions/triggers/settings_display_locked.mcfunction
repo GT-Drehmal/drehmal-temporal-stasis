@@ -1,6 +1,6 @@
 
 function players:avpod/clearchat
-tellraw @s ["",{"text":"[!]","bold":"true","color":"red"},{"text":" Certain settings have been disabled by an operator.","color":"dark_gray"}]
+tellraw @s ["",{"text":"[!]","bold":true,"color":"red"},{"text":" Certain settings have been disabled by an operator.","color":"dark_gray"}]
 
 tellraw @s {"text":" "}
 tellraw @s {"text":"□-----------------------------------------□","color":"dark_gray"}
