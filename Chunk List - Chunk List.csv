@@ -3763,6 +3763,7 @@ Lily Meadows Inn,232,54,minecraft:overworld
 Lily Meadows Inn,232,55,minecraft:overworld
 Lily Meadows Inn,232,56,minecraft:overworld
 Lily Meadows Inn,232,57,minecraft:overworld
+Loraga Keep,-108,189,minecraft:overworld
 Loraga Keep,-112,189,minecraft:overworld
 Loraga Keep,-112,188,minecraft:overworld
 Loraga Keep,-112,187,minecraft:overworld
@@ -3782,7 +3783,6 @@ Loraga Keep,-109,187,minecraft:overworld
 Loraga Keep,-109,188,minecraft:overworld
 Loraga Keep,-109,189,minecraft:overworld
 Loraga Keep,-109,190,minecraft:overworld
-Loraga Keep,-108,189,minecraft:overworld
 Loraga Keep,-108,187,minecraft:overworld
 Loraga Keep,-108,188,minecraft:overworld
 Loraga Keep,-108,190,minecraft:overworld
@@ -3812,6 +3812,7 @@ Lost Cavern,106,-172,minecraft:overworld
 Lost Cavern,106,-171,minecraft:overworld
 Lost Cavern,106,-170,minecraft:overworld
 Lost Cavern,106,-169,minecraft:overworld
+Maerhn'Vhos,-136,-10,minecraft:overworld
 Maerhn'Vhos,-142,-10,minecraft:overworld
 Maerhn'Vhos,-142,-9,minecraft:overworld
 Maerhn'Vhos,-141,-10,minecraft:overworld
@@ -3826,7 +3827,6 @@ Maerhn'Vhos,-137,-10,minecraft:overworld
 Maerhn'Vhos,-137,-9,minecraft:overworld
 Maerhn'Vhos,-137,-8,minecraft:overworld
 Maerhn'Vhos,-137,-7,minecraft:overworld
-Maerhn'Vhos,-136,-10,minecraft:overworld
 Maerhn'Vhos,-136,-9,minecraft:overworld
 Maerhn'Vhos,-136,-8,minecraft:overworld
 Maerhn'Vhos,-136,-7,minecraft:overworld
@@ -10082,3 +10082,14 @@ Ytaj,11,-100,minecraft:lodahr
 Ytaj,11,-99,minecraft:lodahr
 Ytaj,11,-98,minecraft:lodahr
 Zenith,-200,97,minecraft:overworld
+Coven of Potentia,376,94,minecraft:overworld
+Coven of Potentia,376,95,minecraft:overworld
+Coven of Potentia,376,96,minecraft:overworld
+Coven of Potentia,377,94,minecraft:overworld
+Coven of Potentia,377,95,minecraft:overworld
+Coven of Potentia,377,96,minecraft:overworld
+Coven of Potentia,374,94,minecraft:overworld
+Coven of Potentia,374,95,minecraft:overworld
+Coven of Potentia,375,94,minecraft:overworld
+Coven of Potentia,375,95,minecraft:overworld
+Coven of Potentia,373,94,minecraft:overworld

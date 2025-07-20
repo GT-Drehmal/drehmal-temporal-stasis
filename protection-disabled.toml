@@ -79,17 +79,19 @@ fromFireSpread = false
 						Everything = 3
 
 					[playerConfig.claims.protection.exceptionGroups.block.interact]
-						Redstone_Components = 3
+						Redstone_Inputs = 3
+						Signs = 3
+						Gates = 3
 						Containers = 3
 						Anvil = 3
 
 				[playerConfig.claims.protection.exceptionGroups.entity]
 
 					[playerConfig.claims.protection.exceptionGroups.entity.anyItemInteract]
-						Armor_Stand = 3
 						Item_Frames = 3
 
 					[playerConfig.claims.protection.exceptionGroups.entity.interact]
+						Armor_Stand = 3
 						Villager = 3
 
 					[playerConfig.claims.protection.exceptionGroups.entity.entityAccess]
