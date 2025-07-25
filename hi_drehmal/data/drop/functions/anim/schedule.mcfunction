@@ -1,6 +1,6 @@
 execute in minecraft:space run playsound minecraft:dcustom.block.bell.resonate master @a ~ ~ ~ 99999999999999999 1
 
-execute unless score lodahr towers matches 1 run function terminus:unlock_tower/lo_dahr_unlock_a
+execute unless score lo_dahr towers matches 1 run function terminus:unlock_tower/lo_dahr_unlock_a
 
 scoreboard players set #towerdrop bool 1
 schedule function drop:anim/1 32t replace

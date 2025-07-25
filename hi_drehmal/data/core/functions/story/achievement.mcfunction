@@ -26,7 +26,7 @@ execute if score #24closure bool matches 1 run advancement grant @s only advance
 execute if score #teth_dead? bool matches 1 run advancement grant @s only advancements:primordial/kill_dragon
 
 execute if score count_all towers matches 32 run advancement grant @s only advancements:primordial/fullterm
-# Hotfix for mistakenly adding twice to count_all with multiple lodahr tower drops
+# Primitive roll-back for mistakenly adding twice to count_all with multiple lodahr tower drops
 execute if entity @s[advancements={advancements:primordial/fullterm=true}] if score count_all towers matches ..31 run advancement revoke @s only advancements:primordial/fullterm
 
 execute unless score #1awakening bool matches 1 positioned 775 106 687 if entity @s[dx=5,dy=5,dz=5] run advancement grant @s only advancements:primordial/stasis
