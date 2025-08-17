@@ -1,5 +1,8 @@
 *.zip
-*/*.log
-venv/
+*.log
+log_*
 test*
+
 .vscode/
+.conda/
+venv/

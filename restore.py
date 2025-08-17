@@ -38,9 +38,8 @@ RESTORE_OVERRIDE_UUIDS: tuple = (
 )
 
 DEFAULT_LEVEL = logging.INFO
-QUIET_LEVEL = logging.WARNING
 TRACE_LVL_NUM = 5
-VERBOSE_LEVEL = logging.DEBUG
+LOG_PATH = f"./restore_logs/log_{time.time()}.txt"
 
 def main(args: Sequence[str] | None = None):
     """Sets up `argparse` and calls the main function `restore_dimension`.
@@ -50,16 +49,12 @@ def main(args: Sequence[str] | None = None):
             Custom arguments to use when parsing.
             Defaults to `sys.argv[1:]` (fallback of `parse_args`).
     """
-    global logger, log_path  # ugly; artifacts from isolating main code from if __name__ section
+    global logger  # ugly; artifacts from isolating main code from if __name__ section
 
     
     # Set up argument parser
-    description = '''\
-Another strike of the clock, another iteration of the world, Drehmal rewinds, under the whims of the Mythoclast...
-
-example:
-    python restore.py --exclude claims -b -12 -11 14 15 -v -p ".minecraft/saves/ogDrehmal" ".minecraft/saves/actDrehmal"\
-'''
+    description = '''Example:
+    python restore.py --exclude claims -b -12 -11 14 15 -v -p ".minecraft/saves/ogDrehmal" ".minecraft/saves/actDrehmal"'''
     parser = argparse.ArgumentParser(
         description=description,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -100,36 +95,10 @@ example:
         "display options"
     )
     display_g.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="add some extra print messages to see active progress. Will affect file output (i.e. --log/--logf).",
-    )
-    display_g.add_argument(
-        "-q",
-        "--quiet",
-        action="store_true",
-        help="mute all log output and only display a progress bar. Error messages will still be shown. Does not affect file output (i.e. --log/--logf).",
-    )
-    display_g.add_argument(
         "--no-pbar",
         dest="nopbar",
         action="store_true",
         help="disable the progress bar. Can be helpful when piping output into a log file.",
-    )
-
-    log_options_g = parser.add_argument_group(
-        "log options"
-    )
-    log_options_mutx_g = log_options_g.add_mutually_exclusive_group()
-    log_options_mutx_g.add_argument(
-        "--log",
-        type=str,
-        default="",
-        help="also create a copy of the log (excluding the progress bar) in the specified log file.",
-    )
-    log_options_mutx_g.add_argument(
-        "--logf", type=str, default="", help="same as --log, but automatically creates missing directories."
     )
 
     debug_options_g = parser.add_argument_group(
@@ -143,18 +112,13 @@ example:
 
     parsed_args = parser.parse_args(args)
 
-    log_path = parsed_args.log if parsed_args.log else parsed_args.logf
-    if log_path:
-        if not os.path.exists(os.path.dirname(log_path)):
-            if parsed_args.logf or input("One or more log file directories missing. Create missing dirs? (y/N)").lower() != "y":
-                print("Aborting.")
-                sys.exit(1)
-            os.makedirs(os.path.dirname(log_path))
+    if not os.path.exists(os.path.dirname(LOG_PATH)):
+        os.makedirs(os.path.dirname(LOG_PATH))
 
     # Set up root logger & global logger ('restore')
     # Functions may override this with their own logger instance.
-    logger = logger_init(quiet=parsed_args.quiet, verbose=parsed_args.verbose)
-    Chunk.logger_init(quiet=parsed_args.quiet, verbose=parsed_args.verbose)
+    logger = logger_init()
+    Chunk.logger_init()
 
     if any(len(x) > 100 for x in NO_RESTORE_LOCATIONS): # type: ignore
         logger.error('Some of the no-restore location names are longer than 100 characters.')
@@ -168,8 +132,6 @@ example:
         parsed_args.boundary,
         parsed_args.preview,
         parsed_args.nopbar,
-        parsed_args.quiet,
-        parsed_args.verbose,
         parsed_args.sequential
     )
     # Cleanup
@@ -183,8 +145,6 @@ def restore_dimension(
     boundaries: Sequence, 
     preview: bool, 
     nopbar: bool,
-    quiet: bool,
-    verbose: bool,
     sequential: bool
 ) -> int:
     """Performs restoration on the world directory passed in through argparse.
@@ -200,12 +160,6 @@ def restore_dimension(
         boundaries (Sequence): Maximum and minimum **region** coordinates to perform restore in
         preview (bool): Whether to run in "preview" mode. If `True`, no changes will be written to the files.
         nopbar (bool): If `True`, disables the progress bar.
-        quiet (bool): If `True`, silences all log messages below the level `WARNING`.
-            If both `verbose` and `quiet` are `True`, `quiet` will take precedence, and
-            if `log_path` is set, then log written to the file will be verbose.
-        verbose (bool): If `true`, shows all log messages.
-            If both `verbose` and `quiet` are `True`, `quiet` will take precedence, and
-            if `log_path` is set, then log written to the file will be verbose.
         sequential (bool): If `true`, uses sequential processing instead of joblib's parallel.
 
     Returns:
@@ -264,7 +218,7 @@ def restore_dimension(
 
         logger.info(f"Beginning restoration of {len(os.listdir(active_region_dir))} regions...")
 
-        logger_init(quiet, verbose, name="restore.region")
+        logger_init(name="restore.region")
 
         # iterate through region directories for regions, parse chunks in regions for both entities/blocks, swap out changed chunks
         tasks = []
@@ -284,9 +238,7 @@ def restore_dimension(
                     region_file,
                     excludes,
                     boundaries,
-                    preview,
-                    quiet,
-                    verbose
+                    preview
                 )
             else:
                 tasks.append(
@@ -300,9 +252,7 @@ def restore_dimension(
                         region_file,
                         excludes=excludes,
                         boundaries=boundaries,
-                        preview=preview,
-                        quiet=quiet,
-                        verbose=verbose
+                        preview=preview
                     )
                 )
 
@@ -336,9 +286,7 @@ def restore_region(
     region_file: str,
     excludes: Sequence[str],
     boundaries: Sequence,
-    preview: bool,
-    quiet: bool,
-    verbose: bool
+    preview: bool
 ) -> int:
     """Performs a restoration on the given .mca file.
     Chunks (as well as entities) in the active region are overwritten with the corresponding chunks in the original region,
@@ -361,17 +309,11 @@ def restore_region(
         excludes (Sequence[str]): Restoration exclusion option. Currently only supports empty or `Sequence[Literal['Claims']]`
         boundaries (Sequence): Maximum and minimum **region** coordinates to perform restore in
         preview (bool): Whether to run in "preview" mode. If `True`, no changes will be written to the files.
-        quiet (bool): If `True`, silences all log messages below the level `WARNING`.
-            If both `verbose` and `quiet` are `True`, `quiet` will take precedence, and
-            if `log_path` is set, then log written to the file will be verbose.
-        verbose (bool): If `true`, shows all log messages.
-            If both `verbose` and `quiet` are `True`, `quiet` will take precedence, and
-            if `log_path` is set, then log written to the file will be verbose.
 
     Returns:
         int: Status code. If 0, region has been restored successfully. If 1, region has been skipped (not restored). If <0, an error has occurred.
     """
-    logger = logger_init(quiet, verbose, name=f"restore.region.{idx}")
+    logger = logger_init(name=f"restore.region.{idx}")
     with logging_redirect_tqdm(loggers=[logger], tqdm_class=auto_tqdm): # type: ignore
         original_region_path = os.path.join(original_region_dir, region_file)
         active_region_path = os.path.join(active_region_dir, region_file)
@@ -783,8 +725,6 @@ def load_claims(
 
 
 def logger_init(
-    quiet: bool,
-    verbose: bool,
     name: str = "restore"
 ):
     """Reconfigure the root logger in a futile effort to have working logging in every thread/subprocess.
@@ -797,57 +737,47 @@ def logger_init(
     Returns:
         Logger: The configured logger.
     """
-    # # Add a new TRACE level = 5
+    # Add a new TRACE level = 5
     def _trace(self, message, *args, **kwargs):
         if self.isEnabledFor(TRACE_LVL_NUM):
             self._log(TRACE_LVL_NUM, message, args, **kwargs)
     def _trace_module_level(message, *args, **kwargs):
         logging.log(TRACE_LVL_NUM, message, *args, **kwargs)
+
     logging.addLevelName(TRACE_LVL_NUM, 'TRACE')
     setattr(logging, 'TRACE', TRACE_LVL_NUM)
     setattr(logging.getLoggerClass(), 'trace', _trace)
     setattr(logging, 'trace', _trace_module_level)
-    # logging.addLevelName(TRACE_LVL_NUM, 'TRACE')
-    fmt = logging.Formatter(LOG_FMT)
-    tqdm_handler = tqdmStreamHandler()
-    tqdm_handler.setFormatter(fmt)
-    tqdm_handler.stream = sys.stderr
-    tqdm_handler.setLevel(QUIET_LEVEL if quiet else VERBOSE_LEVEL if verbose else DEFAULT_LEVEL)
-    if log_path:  # global variabling all over the place (see main for logic)
-        # File handler
-        fh = logging.FileHandler(log_path, encoding="utf-8")
-        fh.setFormatter(fmt)
-        if verbose:
-            fh.setLevel(VERBOSE_LEVEL)
-        else:
-            fh.setLevel(DEFAULT_LEVEL)
+
+    # # Handlers - format
+    # fmt = logging.Formatter(LOG_FMT)
+    # # File handler
+    # fh = logging.FileHandler(LOG_PATH, encoding="utf-8")
+    # fh.setFormatter(fmt)
+    # fh.setLevel(TRACE_LVL_NUM)
+
+    # Configure root logger
+    root_logger = logging.getLogger()
+    if root_logger.hasHandlers():
+        for handler in root_logger.handlers:
+            root_logger.removeHandler(handler)
+    root_logger.setLevel(logging.FATAL + 1)
+    root_logger.propagate = False
+
+    # Configure requested logger
     logger = logging.getLogger(name)
-    # Configure new logger
-    logger.setLevel(tqdm_handler.level)
-    if log_path:
-        logger.setLevel(fh.level)
-    logger.handlers = [tqdm_handler]
-    if log_path:
-        logger.handlers = [tqdm_handler, fh]
+    # has_fh = False
+    if logger.hasHandlers():
+        for handler in logger.handlers:
+            # if handler != fh:
+                logger.removeHandler(handler)
+            # else:
+            #     has_fh = True
+    # if not has_fh:
+    #     logger.addHandler(fh)
+    # logger.setLevel(fh.level)
     logger.propagate = False
     return logger
-
-
-class tqdmStreamHandler(logging.StreamHandler):
-    """Modified from [tqdm.contrib.logging](https://tqdm.github.io/docs/contrib.logging/)"""
-    def __init__(self, tqdm_class=auto_tqdm):
-        super().__init__()
-        self.tqdm_class = tqdm_class
-
-    def emit(self, record):
-        try:
-            msg = self.format(record)
-            self.tqdm_class.write(msg, file=self.stream)
-            self.flush()
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:  # noqa pylint: disable=bare-except
-            self.handleError(record)
 
 
 class ProgressParallel(Parallel):
@@ -956,8 +886,8 @@ class Chunk(anvil.chunk.Chunk):  # type: ignore
         # Chunk._logger.trace(f'Generated Chunk instance for NBT file {id(nbt_data.file)}')
 
     @classmethod
-    def logger_init(cls, quiet: bool = False, verbose: bool = False):
-        cls._logger = logger_init(quiet, verbose, name="restore.Chunk")
+    def logger_init(cls):
+        cls._logger = logger_init(name="restore.Chunk")
 
     def __repr__(self):
         return f"Chunk({self.x},{self.z})"
