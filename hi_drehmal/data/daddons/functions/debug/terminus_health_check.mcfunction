@@ -1,6 +1,5 @@
 # Run on load. Checks if any of the towers that are supposed to be unlocked is not unlocked
 # and verifies total tower count.
-# Note: This function is only to be used at 99% (before yavhlix unlock)
 scoreboard players set issue_detected debug 0
 
 execute unless score capital_valley towers matches 1 run say [!] Capital Valley tower is supposed to be unlocked but is not [!]
@@ -92,6 +91,9 @@ execute unless score south_tharxax towers matches 1 run scoreboard players set i
 
 execute unless score heartwood towers matches 1 run say [!] North Heartwood tower is supposed to be unlocked but is not [!]
 execute unless score heartwood towers matches 1 run scoreboard players set issue_detected debug 1 
+
+execute unless score yavhlix towers matches 1 run say [!] Yavhlix tower is supposed to be unlocked but is not [!]
+execute unless score yavhlix towers matches 1 run scoreboard players set issue_detected debug 1 
 
 execute unless score carmine towers matches 1 run say [!] Carmine tower is supposed to be unlocked but is not [!]
 execute unless score carmine towers matches 1 run scoreboard players set issue_detected debug 1 
